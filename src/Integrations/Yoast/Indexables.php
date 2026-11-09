@@ -22,7 +22,7 @@ final class Indexables {
 	}
 
 	/**
-	 * @return array{link_count:int|null,incoming_link_count:int|null}
+	 * @return array{link_count:int|null,incoming_link_count:int|null,indexed:bool}
 	 */
 	public static function link_counts( int $post_id ): array {
 		$cached = wp_cache_get( $post_id, self::GROUP );
@@ -34,6 +34,7 @@ final class Indexables {
 		return array(
 			'link_count'          => isset( $cached['link_count'] ) ? (int) $cached['link_count'] : null,
 			'incoming_link_count' => isset( $cached['incoming_link_count'] ) ? (int) $cached['incoming_link_count'] : null,
+			'indexed'             => array_key_exists( 'link_count', $cached ),
 		);
 	}
 

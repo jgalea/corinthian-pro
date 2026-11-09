@@ -862,11 +862,16 @@ class YoastTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( '&#8212;', $this->render( 'internal_links_out', 'D' ), 'indexed with no count yet' );
 		$this->assertStringContainsString( '&#8212;', $this->render( 'internal_links_out', 'E' ), 'no indexable row' );
 		$this->assertSame( '2', $this->render( 'internal_links_in', 'B' ) );
+		$this->assertSame( '0', $this->render( 'internal_links_in', 'D' ), 'Yoast counts an indexed post with no inbound count as orphaned' );
+		$this->assertStringContainsString( '&#8212;', $this->render( 'internal_links_in', 'E' ), 'no indexable row' );
 		$this->assertSame( 3, $this->type( 'internal_links_out' )->value( $this->n['A'], $this->cfg( 'internal_links_out' ), $this->screen ) );
 
 		$this->assertSame( array( 'A', 'B', 'C', 'E', 'D' ), $this->sorted( 'internal_links_out', 'DESC' ) );
 		$this->assertSame( array( 'C', 'B', 'A', 'D', 'E' ), $this->sorted( 'internal_links_out', 'ASC' ) );
-		$this->assertSame( array( 'B', 'C', 'A', 'E', 'D' ), $this->sorted( 'internal_links_in', 'DESC' ) );
+		$in = $this->sorted( 'internal_links_in', 'DESC' );
+		$this->assertSame( array( 'B', 'C' ), array_slice( $in, 0, 2 ) );
+		$this->assertEqualsCanonicalizing( array( 'A', 'D' ), array_slice( $in, 2, 2 ), 'A and D both have no inbound links' );
+		$this->assertSame( 'E', $in[4], 'Posts Yoast never indexed sort last' );
 
 		$this->expect( array( 'C' ), 'internal_links_out', 'eq', '0' );
 		$this->expect( array( 'A', 'B' ), 'internal_links_out', 'gt', '0' );
@@ -875,7 +880,8 @@ class YoastTest extends WP_UnitTestCase {
 		$this->expect( array( 'D', 'E' ), 'internal_links_out', 'empty', null );
 		$this->expect( array(), 'internal_links_out', 'gt', '5' );
 		$this->expect( array( 'B' ), 'internal_links_in', 'gt', '1' );
-		$this->expect( array( 'A' ), 'internal_links_in', 'eq', '0' );
+		$this->expect( array( 'A', 'D' ), 'internal_links_in', 'eq', '0' );
+		$this->expect( array( 'E' ), 'internal_links_in', 'empty', null );
 		$this->expect( array(), 'internal_links_in', 'between', array( '5', '9' ) );
 		$this->assertNull( $this->type( 'internal_links_in' )->filter_condition( $this->cfg( 'internal_links_in' ), 'contains', 'x', $this->screen, 'clf0' ) );
 	}

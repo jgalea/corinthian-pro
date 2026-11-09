@@ -15,4 +15,8 @@ final class InboundLinksType extends LinkCountType {
 	protected function column(): string {
 		return 'incoming_link_count';
 	}
+
+	protected function empty_means_zero(): bool {
+		return true;
+	}
 }

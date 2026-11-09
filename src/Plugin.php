@@ -14,6 +14,7 @@ final class Plugin {
 		Integrations\Yoast\YoastIntegration::register();
 		Integrations\SeoPress\SeoPressIntegration::register();
 		Integrations\EventsCalendar\EventsCalendarIntegration::register();
+		Integrations\Wpra\WpraIntegration::register();
 		Integrations\BuddyPress\BuddyPressIntegration::register();
 		Integrations\WooCommerce\WooCommerceIntegration::register();
 		Abilities\Abilities::register();

@@ -17,7 +17,7 @@ Corinthian Pro extends the free Corinthian Admin Column Manager plugin for WordP
 - Conditional formatting for rows and cells
 - Quick add from the list table
 - Column set transfer as JSON, and export of a set as PHP
-- Integrations for WooCommerce, Advanced Custom Fields, Meta Box, Pods, Yoast SEO, Rank Math, SEOPress, The Events Calendar and BuddyPress
+- Integrations for WooCommerce, Advanced Custom Fields, Meta Box, Pods, Yoast SEO, Rank Math, SEOPress, The Events Calendar, BuddyPress and WP RSS Aggregator
 - Plain-English filters and suggested values through the WordPress 7.0 AI client, when an AI provider is connected
 - Column sets, filters, segments and bulk edits through the WordPress Abilities API
 

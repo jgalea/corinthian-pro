@@ -27,8 +27,22 @@ abstract class LinkCountType extends YoastType implements Sortable, Filterable {
 		return parent::supports( $screen ) && Indexables::table_exists();
 	}
 
+	/**
+	 * Yoast leaves the count empty on an indexed post nothing links to, and counts it as orphaned.
+	 */
+	protected function empty_means_zero(): bool {
+		return false;
+	}
+
 	public function value( int $object_id, Config $config, Screen $screen ): mixed {
-		return Indexables::link_counts( $object_id )[ $this->column() ];
+		$counts = Indexables::link_counts( $object_id );
+		$count  = $counts[ $this->column() ];
+		return null === $count && $counts['indexed'] && $this->empty_means_zero() ? 0 : $count;
+	}
+
+	private function expression( string $alias ): string {
+		$column = "{$alias}.{$this->column()}";
+		return $this->empty_means_zero() ? "COALESCE({$column}, 0)" : $column;
 	}
 
 	public function render( int $object_id, Config $config, Screen $screen ): string {
@@ -43,7 +57,8 @@ abstract class LinkCountType extends YoastType implements Sortable, Filterable {
 		$column             = $this->column();
 		$clauses['join']   .= " LEFT JOIN {$table} AS {$alias} ON ({$alias}.object_id = {$wpdb->posts}.ID AND {$alias}.object_type = 'post')";
 		$clauses['groupby'] = "{$wpdb->posts}.ID";
-		$clauses['orderby'] = "(MAX({$alias}.{$column}) IS NULL) ASC, MAX({$alias}.{$column}) {$order}";
+		$value              = $this->empty_means_zero() ? "CASE WHEN {$alias}.object_id IS NULL THEN NULL ELSE COALESCE({$alias}.{$column}, 0) END" : "{$alias}.{$column}";
+		$clauses['orderby'] = "(MAX({$value}) IS NULL) ASC, MAX({$value}) {$order}";
 		return $clauses;
 	}
 
@@ -54,15 +69,16 @@ abstract class LinkCountType extends YoastType implements Sortable, Filterable {
 	public function filter_condition( Config $config, string $op, mixed $value, Screen $screen, string $alias ): ?array {
 		global $wpdb;
 		$table  = YoastIntegration::indexable_table();
-		$column = "{$alias}.{$this->column()}";
-		$exists = "EXISTS (SELECT 1 FROM {$table} AS {$alias} WHERE {$alias}.object_id = {$wpdb->posts}.ID AND {$alias}.object_type = 'post'";
+		$column  = $this->expression( $alias );
+		$exists  = "EXISTS (SELECT 1 FROM {$table} AS {$alias} WHERE {$alias}.object_id = {$wpdb->posts}.ID AND {$alias}.object_type = 'post'";
+		$counted = $this->empty_means_zero() ? '' : " AND {$column} IS NOT NULL";
 		if ( 'empty' === $op ) {
-			return PostFilter::wrap( 'NOT ' . $exists . " AND {$column} IS NOT NULL)" );
+			return PostFilter::wrap( 'NOT ' . $exists . $counted . ')' );
 		}
 		if ( ! in_array( $op, array( 'eq', 'neq', 'gt', 'lt', 'between' ), true ) ) {
 			return null;
 		}
 		$where = PostFilter::number_where( $column, $op, $value );
-		return null === $where ? null : PostFilter::wrap( $exists . " AND {$column} IS NOT NULL AND {$where})" );
+		return null === $where ? null : PostFilter::wrap( $exists . $counted . " AND {$where})" );
 	}
 }
