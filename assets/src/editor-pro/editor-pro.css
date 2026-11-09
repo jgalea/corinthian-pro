@@ -1,0 +1,26 @@
+.corinthian-rules { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+.corinthian-rule { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; border: 1px solid #c3c4c7; background: #f6f7f7; padding: 12px; min-width: 0; }
+.corinthian-rule fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.corinthian-rule__fields { display: grid; gap: 12px; }
+.corinthian-rule__title { font-weight: 600; padding: 0; margin-bottom: 8px; }
+.corinthian-rule__condition { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 12px; align-items: end; }
+.corinthian-rule__between { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.corinthian-rule__tones legend, .corinthian-rule__scope legend, .corinthian-rule__choices legend { font-weight: 500; margin-bottom: 6px; padding: 0; }
+.corinthian-tones { display: flex; flex-wrap: wrap; gap: 8px; }
+.corinthian-tone { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px 0 8px; border: 1px solid #8c8f94; background: #fff; cursor: pointer; position: relative; }
+.corinthian-tone input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.corinthian-tone.is-selected { border: 2px solid #1d2327; padding: 0 9px 0 7px; font-weight: 600; }
+.corinthian-tone:focus-within { outline: 2px solid #2271b1; outline-offset: 2px; }
+.corinthian-tone__swatch { width: 16px; height: 16px; border-radius: 2px; border: 1px solid #1d2327; flex: none; }
+.corinthian-tone.is-selected .corinthian-tone__name::before { content: "\2713\00a0"; }
+.corinthian-rule__style { display: flex; flex-wrap: wrap; gap: 12px 32px; align-items: flex-start; }
+.corinthian-rule__style .corinthian-rule__scope { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; }
+.corinthian-rule__style .corinthian-rule__scope legend { float: left; margin: 0 12px 0 0; }
+.corinthian-scope { display: flex; gap: 16px; }
+.corinthian-scope__option { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; }
+.corinthian-rule__actions { display: flex; flex-direction: column; }
+@media (max-width: 640px) {
+	.corinthian-rule { grid-template-columns: minmax(0, 1fr); }
+	.corinthian-rule__actions { flex-direction: row; }
+}
+.corinthian-rule .components-base-control__label, .corinthian-rule .components-input-control__label, .corinthian-rule label { font-size: 13px !important; font-weight: 500; line-height: 1.4; text-transform: none; }

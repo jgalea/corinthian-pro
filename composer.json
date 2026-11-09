@@ -1,0 +1,30 @@
+{
+  "name": "jeangalea/corinthian-pro",
+  "description": "Pro extensions for Corinthian.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=8.1"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^9.6",
+    "yoast/phpunit-polyfills": "^2.0",
+    "wp-phpunit/wp-phpunit": "^6.6",
+    "squizlabs/php_codesniffer": "^3.10",
+    "wp-coding-standards/wpcs": "^3.1",
+    "phpstan/phpstan": "^1.11",
+    "szepeviktor/phpstan-wordpress": "^1.3",
+    "php-stubs/wp-cli-stubs": "^2.12"
+  },
+  "autoload": { "psr-4": { "CorinthianPro\\": "src/" } },
+  "autoload-dev": { "psr-4": { "CorinthianPro\\Tests\\": "tests/integration/" } },
+  "config": {
+    "allow-plugins": { "dealerdirect/phpcodesniffer-composer-installer": true },
+    "platform": { "php": "8.1" }
+  },
+  "scripts": {
+    "test": "phpunit -c phpunit.xml.dist",
+    "lint": "phpcs",
+    "stan": "phpstan analyze --memory-limit=2G"
+  }
+}

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<phpunit bootstrap="tests/integration/bootstrap.php" colors="true" cacheResult="false" failOnWarning="true">
+	<php>
+		<const name="WP_TESTS_MULTISITE" value="1"/>
+		<env name="WORDPRESS_TABLE_PREFIX" value="wpms_"/>
+	</php>
+	<testsuites>
+		<testsuite name="multisite">
+			<file>tests/integration/MultisiteExportTest.php</file>
+			<file>tests/integration/MultisiteEditTest.php</file>
+			<file>tests/integration/MultisiteFilterTest.php</file>
+		</testsuite>
+	</testsuites>
+	<groups>
+		<include>
+			<group>MultisiteTest</group>
+		</include>
+	</groups>
+</phpunit>

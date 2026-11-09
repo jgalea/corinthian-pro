@@ -1,0 +1,24 @@
+{
+  "core": null,
+  "phpVersion": "8.2",
+  "plugins": [ "../colonnade", "." ],
+  "port": 8932,
+  "testsPort": 8933,
+  "config": { "WP_DEBUG": true, "WP_DEBUG_LOG": true, "SCRIPT_DEBUG": true },
+  "env": {
+    "development": {
+      "port": 8932,
+      "mappings": {
+        "wp-content/plugins/corinthian-admin-column-manager": "../colonnade",
+        "wp-content/plugins/corinthian-pro": "."
+      }
+    },
+    "tests": {
+      "port": 8933,
+      "mappings": {
+        "wp-content/plugins/corinthian-admin-column-manager": "../colonnade",
+        "wp-content/plugins/corinthian-pro": "."
+      }
+    }
+  }
+}
