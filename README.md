@@ -1,4 +1,4 @@
-<h1 align="center">Corinthian Pro</h1>
+<h1 align="center">Corinthian Admin Column Manager PRO</h1>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/LICENSE-GPL--2.0--or--later-5C9E31?style=for-the-badge" alt="License"></a>
@@ -9,7 +9,7 @@
 
 ## What it adds
 
-Corinthian Pro extends the free Corinthian Admin Column Manager plugin for WordPress:
+Corinthian Admin Column Manager PRO extends the free Corinthian Admin Column Manager plugin for WordPress:
 
 - Smart filters on any column, with saved segments
 - Inline editing and bulk editing, checked against each user's permissions

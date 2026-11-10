@@ -69,7 +69,7 @@ function corinthian_pro_plugin_info( $result, $action, $args ) {
 	}
 
 	return (object) array(
-		'name'          => 'Corinthian Pro',
+		'name'          => 'Corinthian Admin Column Manager PRO',
 		'slug'          => 'corinthian-pro',
 		'version'       => $release['version'],
 		'author'        => 'Jean Galea',

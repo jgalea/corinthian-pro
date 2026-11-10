@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name:       Corinthian Pro
+ * Plugin Name:       Corinthian Admin Column Manager PRO
  * Description:       Pro extensions for Corinthian.
- * Version:           0.2.0
+ * Version:           0.2.1
  * Requires at least: 6.9
  * Requires PHP:      8.1
  * Requires Plugins:  corinthian-admin-column-manager
@@ -17,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'CORINTHIAN_PRO_VERSION', '0.2.0' );
+define( 'CORINTHIAN_PRO_VERSION', '0.2.1' );
 define( 'CORINTHIAN_PRO_MIN_FREE', '0.1.0' );
 define( 'CORINTHIAN_PRO_PLUGIN_FILE', __FILE__ );
 define( 'CORINTHIAN_PRO_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
@@ -67,9 +67,9 @@ function corinthian_pro_requirement_notice( string $problem ): void {
 		static function () use ( $problem ) {
 			if ( 'outdated' === $problem ) {
 				/* translators: %s: minimum free plugin version. */
-				$message = sprintf( __( 'Corinthian Pro needs Corinthian %s or newer. Update the free plugin to continue.', 'corinthian-pro' ), CORINTHIAN_PRO_MIN_FREE );
+				$message = sprintf( __( 'Corinthian Admin Column Manager PRO needs Corinthian Admin Column Manager %s or newer. Update the free plugin to continue.', 'corinthian-pro' ), CORINTHIAN_PRO_MIN_FREE );
 			} else {
-				$message = __( 'Corinthian Pro requires the free Corinthian plugin. Install and activate Corinthian first.', 'corinthian-pro' );
+				$message = __( 'Corinthian Admin Column Manager PRO requires the free Corinthian Admin Column Manager plugin. Install and activate it first.', 'corinthian-pro' );
 			}
 			echo '<div class="notice notice-error"><p>' . esc_html( $message ) . '</p></div>';
 		}
