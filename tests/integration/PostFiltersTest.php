@@ -82,6 +82,20 @@ class PostFiltersTest extends WP_UnitTestCase {
 			)
 		);
 
+		// Word counts are only stored once a set uses them.
+		\Corinthian\Plugin::instance()->sets->save(
+			array(
+				'screen'  => 'post:post',
+				'title'   => 'Counts',
+				'columns' => array(
+					array(
+						'id'   => 'wc',
+						'type' => 'post.word_count',
+					),
+				),
+			)
+		);
+
 		$this->registry = new Registry();
 		TypeLoader::register( $this->registry );
 		$this->screen = new PostTypeScreen( $this->registry, new SetRepository(), get_post_type_object( 'post' ) );

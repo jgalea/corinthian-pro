@@ -9,6 +9,8 @@ use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Venues and organizers linked to an event through _EventVenueID and
  * _EventOrganizerID, one meta row per linked post.

@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\EventsCalendar;
 
 use Corinthian\Columns\Registry;
 
+defined( 'ABSPATH' ) || exit;
+
 final class EventsCalendarIntegration {
 
 	public static function register(): void {

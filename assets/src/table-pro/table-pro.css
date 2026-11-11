@@ -568,3 +568,9 @@
 		font-size: 12px;
 	}
 }
+
+.corinthian-bulk__preview {
+	margin: 0 0 1em;
+	padding-inline-start: 1.25em;
+	list-style: disc;
+}

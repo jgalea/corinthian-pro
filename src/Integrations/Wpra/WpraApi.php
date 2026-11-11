@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\Wpra;
 
+defined( 'ABSPATH' ) || exit;
+
 final class WpraApi {
 
 	public const ITEM_POST_TYPE = 'wprss_feed_item';

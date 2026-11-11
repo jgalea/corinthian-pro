@@ -10,6 +10,8 @@ use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _yoast_wpseo_meta-robots-noindex: '1' noindex, '2' index. No row (Yoast's
  * '0') means the post type default from Yoast's search appearance settings.

@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\EventsCalendar;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * The only place that calls The Events Calendar. Calls go through
  * call_user_func so the plugin analyses cleanly without TEC's stubs.
@@ -70,7 +72,7 @@ final class TecApi {
 	 * TEC's own check for whether a venue or organizer may be linked to an event.
 	 */
 	public static function linkable( string $post_type, int $id ): bool {
-		if ( $id <= 0 || $post_type !== get_post_type( $id ) || 'trash' === get_post_status( $id ) || ! self::readable( $id ) ) {
+		if ( $id <= 0 || get_post_type( $id ) !== $post_type || 'trash' === get_post_status( $id ) || ! self::readable( $id ) ) {
 			return false;
 		}
 		$linked = self::call( array( 'Tribe__Events__Linked_Posts', 'instance' ) );

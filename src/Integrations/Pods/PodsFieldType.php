@@ -10,6 +10,8 @@ use Corinthian\Columns\Filterable;
 use Corinthian\Columns\Sortable;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Any Pods field on a post, term or user list. Pods that keep their values in
  * their own table (advanced pods) render through Pods but can't be sorted,

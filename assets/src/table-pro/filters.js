@@ -29,7 +29,9 @@ function findOp( column, op ) {
 }
 
 function optionList( operator ) {
-	return Object.entries( operator?.options || {} ).map( ( [ value, label ] ) => ( { value, label } ) );
+	return Object.entries( operator?.options || {} ).map(
+		( [ value, label ] ) => ( { value, label } )
+	);
 }
 
 function isMulti( op ) {
@@ -49,17 +51,34 @@ function blankValue( operator ) {
 function blankRule( columns ) {
 	const column = columns[ 0 ];
 	const operator = column?.operators?.[ 0 ];
-	return { key: nextKey(), column: column?.id || '', op: operator?.op || '', value: blankValue( operator ) };
+	return {
+		key: nextKey(),
+		column: column?.id || '',
+		op: operator?.op || '',
+		value: blankValue( operator ),
+	};
 }
 
 function toDraft( filter, columns ) {
 	const rules = arr( filter?.rules )
 		.filter( ( r ) => findOp( findColumn( columns, r.column ), r.op ) )
-		.map( ( r ) => ( { key: nextKey(), column: r.column, op: r.op, value: r.value ?? null } ) );
-	return { match: filter?.match === 'any' ? 'any' : 'all', rules: rules.length ? rules : [ blankRule( columns ) ] };
+		.map( ( r ) => ( {
+			key: nextKey(),
+			column: r.column,
+			op: r.op,
+			value: r.value ?? null,
+		} ) );
+	return {
+		match: filter?.match === 'any' ? 'any' : 'all',
+		rules: rules.length ? rules : [ blankRule( columns ) ],
+	};
 }
 
-/** Rules that are complete enough to send, in the backend's shape. */
+/**
+ * Rules that are complete enough to send, in the backend's shape.
+ * @param {*} draft
+ * @param {*} columns
+ */
 function cleanFilter( draft, columns ) {
 	const rules = [];
 	draft.rules.forEach( ( rule ) => {
@@ -74,7 +93,10 @@ function cleanFilter( draft, columns ) {
 		let value = rule.value;
 		if ( operator.op === 'between' ) {
 			value = arr( value ).slice( 0, 2 );
-			if ( value.length < 2 || value.some( ( v ) => v === '' || v === null ) ) {
+			if (
+				value.length < 2 ||
+				value.some( ( v ) => v === '' || v === null )
+			) {
 				return;
 			}
 		} else if ( isMulti( operator.op ) ) {
@@ -100,9 +122,15 @@ function describeRule( rule, columns ) {
 	const show = ( v ) => options[ v ] ?? v;
 	let value = '';
 	if ( operator.input !== 'none' ) {
-		value = Array.isArray( rule.value ) ? rule.value.map( show ).join( operator.op === 'between' ? ' – ' : ', ' ) : show( rule.value );
+		value = Array.isArray( rule.value )
+			? rule.value
+					.map( show )
+					.join( operator.op === 'between' ? ' – ' : ', ' )
+			: show( rule.value );
 	}
-	return [ column.label, operator.label, value ].filter( ( p ) => p !== '' ).join( ' ' );
+	return [ column.label, operator.label, value ]
+		.filter( ( p ) => p !== '' )
+		.join( ' ' );
 }
 
 function navigate( filter ) {
@@ -159,7 +187,15 @@ function ValueInput( { rule, operator, onChange, label } ) {
 							__nextHasNoMarginBottom
 							label={ o.label }
 							checked={ chosen.includes( o.value ) }
-							onChange={ ( on ) => onChange( on ? [ ...chosen, o.value ] : chosen.filter( ( v ) => v !== o.value ) ) }
+							onChange={ ( on ) =>
+								onChange(
+									on
+										? [ ...chosen, o.value ]
+										: chosen.filter(
+												( v ) => v !== o.value
+										  )
+								)
+							}
 						/>
 					) ) }
 				</fieldset>
@@ -172,7 +208,14 @@ function ValueInput( { rule, operator, onChange, label } ) {
 				label={ label }
 				hideLabelFromVision
 				value={ rule.value ?? '' }
-				options={ [ { value: '', label: __( 'Choose…', 'corinthian-pro' ), disabled: true }, ...options ] }
+				options={ [
+					{
+						value: '',
+						label: __( 'Choose…', 'corinthian-pro' ),
+						disabled: true,
+					},
+					...options,
+				] }
 				onChange={ onChange }
 			/>
 		);
@@ -199,40 +242,83 @@ function RuleRow( { rule, columns, onChange, onRemove, index } ) {
 			<SelectControl
 				__nextHasNoMarginBottom
 				__next40pxDefaultSize
-				label={ sprintf( /* translators: %d: rule number */ __( 'Column, rule %d', 'corinthian-pro' ), n ) }
+				label={ sprintf(
+					/* translators: %d: rule number */ __(
+						'Column, rule %d',
+						'corinthian-pro'
+					),
+					n
+				) }
 				hideLabelFromVision
 				value={ rule.column }
-				options={ columns.map( ( c ) => ( { value: c.id, label: c.label } ) ) }
+				options={ columns.map( ( c ) => ( {
+					value: c.id,
+					label: c.label,
+				} ) ) }
 				onChange={ ( id ) => {
 					const op = findColumn( columns, id )?.operators?.[ 0 ];
-					onChange( { ...rule, column: id, op: op?.op || '', value: blankValue( op ) } );
+					onChange( {
+						...rule,
+						column: id,
+						op: op?.op || '',
+						value: blankValue( op ),
+					} );
 				} }
 			/>
 			<SelectControl
 				__nextHasNoMarginBottom
 				__next40pxDefaultSize
-				label={ sprintf( /* translators: %d: rule number */ __( 'Operator, rule %d', 'corinthian-pro' ), n ) }
+				label={ sprintf(
+					/* translators: %d: rule number */ __(
+						'Operator, rule %d',
+						'corinthian-pro'
+					),
+					n
+				) }
 				hideLabelFromVision
 				value={ rule.op }
-				options={ ( column?.operators || [] ).map( ( o ) => ( { value: o.op, label: o.label } ) ) }
+				options={ ( column?.operators || [] ).map( ( o ) => ( {
+					value: o.op,
+					label: o.label,
+				} ) ) }
 				onChange={ ( op ) => {
 					const next = findOp( column, op );
-					const same = next?.input === operator?.input && isMulti( op ) === isMulti( rule.op ) && ( op === 'between' ) === ( rule.op === 'between' ) && next?.input !== 'none';
-					onChange( { ...rule, op, value: same ? rule.value : blankValue( next ) } );
+					const same =
+						next?.input === operator?.input &&
+						isMulti( op ) === isMulti( rule.op ) &&
+						( op === 'between' ) === ( rule.op === 'between' ) &&
+						next?.input !== 'none';
+					onChange( {
+						...rule,
+						op,
+						value: same ? rule.value : blankValue( next ),
+					} );
 				} }
 			/>
 			<div className="corinthian-filter__value">
 				<ValueInput
 					rule={ rule }
 					operator={ operator }
-					label={ sprintf( /* translators: %d: rule number */ __( 'Value, rule %d', 'corinthian-pro' ), n ) }
+					label={ sprintf(
+						/* translators: %d: rule number */ __(
+							'Value, rule %d',
+							'corinthian-pro'
+						),
+						n
+					) }
 					onChange={ ( value ) => onChange( { ...rule, value } ) }
 				/>
 			</div>
 			<Button
 				className="corinthian-filter__remove"
 				icon="no-alt"
-				label={ sprintf( /* translators: %d: rule number */ __( 'Remove rule %d', 'corinthian-pro' ), n ) }
+				label={ sprintf(
+					/* translators: %d: rule number */ __(
+						'Remove rule %d',
+						'corinthian-pro'
+					),
+					n
+				) }
 				onClick={ onRemove }
 			/>
 		</li>
@@ -244,16 +330,26 @@ const DROP_REASONS = () => ( {
 	malformed: __( 'the rule was incomplete', 'corinthian-pro' ),
 	too_many_rules: __( 'there were too many rules', 'corinthian-pro' ),
 	unknown_rule_keys: __( 'extra settings were ignored', 'corinthian-pro' ),
-	unknown_column: __( 'that column can\'t be filtered', 'corinthian-pro' ),
-	unsupported_op: __( 'that comparison isn\'t available for the column', 'corinthian-pro' ),
-	invalid_value: __( 'the value doesn\'t fit the column', 'corinthian-pro' ),
+	unknown_column: __( "that column can't be filtered", 'corinthian-pro' ),
+	unsupported_op: __(
+		"that comparison isn't available for the column",
+		'corinthian-pro'
+	),
+	invalid_value: __( "the value doesn't fit the column", 'corinthian-pro' ),
 } );
 
 function describeDropped( item, columns ) {
 	const rule = item?.rule;
 	let what = item?.key || '';
 	if ( rule && typeof rule === 'object' ) {
-		what = describeRule( rule, columns ) || [ findColumn( columns, rule.column )?.label || rule.column, rule.op ].filter( Boolean ).join( ' ' );
+		what =
+			describeRule( rule, columns ) ||
+			[
+				findColumn( columns, rule.column )?.label || rule.column,
+				rule.op,
+			]
+				.filter( Boolean )
+				.join( ' ' );
 	}
 	const reason = DROP_REASONS()[ item?.reason ] || '';
 	return [ what, reason ].filter( Boolean ).join( ': ' );
@@ -280,9 +376,17 @@ function DescribeFilter( { columns, onLoad } ) {
 		} )
 			.then( ( r ) => {
 				onLoad( r.filter );
-				setResult( { rules: arr( r.filter?.rules ).length, dropped: arr( r.dropped ) } );
+				setResult( {
+					rules: arr( r.filter?.rules ).length,
+					dropped: arr( r.dropped ),
+				} );
 			} )
-			.catch( ( e ) => setError( e?.message || __( 'The filter could not be built.', 'corinthian-pro' ) ) )
+			.catch( ( e ) =>
+				setError(
+					e?.message ||
+						__( 'The filter could not be built.', 'corinthian-pro' )
+				)
+			)
 			.finally( () => setBusy( false ) );
 	};
 
@@ -293,27 +397,47 @@ function DescribeFilter( { columns, onLoad } ) {
 					__nextHasNoMarginBottom
 					__next40pxDefaultSize
 					label={ __( 'Describe a filter', 'corinthian-pro' ) }
-					placeholder={ __( 'Posts by Sam that are still drafts', 'corinthian-pro' ) }
+					placeholder={ __(
+						'Posts by Sam that are still drafts',
+						'corinthian-pro'
+					) }
 					value={ text }
 					onChange={ setText }
 				/>
-				<Button variant="secondary" type="submit" isBusy={ busy } accessibleWhenDisabled disabled={ busy || ! text.trim() }>
+				<Button
+					variant="secondary"
+					type="submit"
+					isBusy={ busy }
+					accessibleWhenDisabled
+					disabled={ busy || ! text.trim() }
+				>
 					{ __( 'Build filter', 'corinthian-pro' ) }
 				</Button>
 			</div>
 			<div aria-live="polite">
 				{ result && (
-					<Notice status={ result.dropped.length ? 'warning' : 'success' } isDismissible={ false }>
+					<Notice
+						status={ result.dropped.length ? 'warning' : 'success' }
+						isDismissible={ false }
+					>
 						{ result.rules
-							? __( 'The rules are loaded below. Check them, then press Apply.', 'corinthian-pro' )
-							: __( 'No rules could be built from that description. Try naming a column and a value.', 'corinthian-pro' ) }
+							? __(
+									'The rules are loaded below. Check them, then press Apply.',
+									'corinthian-pro'
+							  )
+							: __(
+									'No rules could be built from that description. Try naming a column and a value.',
+									'corinthian-pro'
+							  ) }
 						{ result.dropped.length > 0 && (
 							<>
 								{ ' ' }
 								{ __( 'Left out:', 'corinthian-pro' ) }
 								<ul className="corinthian-filter__dropped">
 									{ result.dropped.map( ( d, i ) => (
-										<li key={ i }>{ describeDropped( d, columns ) }</li>
+										<li key={ i }>
+											{ describeDropped( d, columns ) }
+										</li>
 									) ) }
 								</ul>
 							</>
@@ -354,7 +478,15 @@ function SaveSegment( { draft, columns, canShare, onSaved } ) {
 				setShared( false );
 				onSaved( segment );
 			} )
-			.catch( ( e ) => setError( e?.message || __( 'The segment could not be saved.', 'corinthian-pro' ) ) )
+			.catch( ( e ) =>
+				setError(
+					e?.message ||
+						__(
+							'The segment could not be saved.',
+							'corinthian-pro'
+						)
+				)
+			)
 			.finally( () => setBusy( false ) );
 	};
 
@@ -396,13 +528,22 @@ function SaveSegment( { draft, columns, canShare, onSaved } ) {
 function SegmentRow( { segment, onApply, onDelete, canDelete } ) {
 	return (
 		<li className="corinthian-filter__segment">
-			<Button className="corinthian-filter__segment-apply" onClick={ onApply }>
+			<Button
+				className="corinthian-filter__segment-apply"
+				onClick={ onApply }
+			>
 				{ segment.name }
 			</Button>
 			{ canDelete && (
 				<Button
 					icon="trash"
-					label={ sprintf( /* translators: %s: segment name */ __( 'Delete segment %s', 'corinthian-pro' ), segment.name ) }
+					label={ sprintf(
+						/* translators: %s: segment name */ __(
+							'Delete segment %s',
+							'corinthian-pro'
+						),
+						segment.name
+					) }
 					onClick={ onDelete }
 				/>
 			) }
@@ -419,7 +560,13 @@ function SegmentGroup( { title, segments, canDelete, onApply, onDelete } ) {
 			<h3>{ title }</h3>
 			<ul>
 				{ segments.map( ( s ) => (
-					<SegmentRow key={ s.id } segment={ s } canDelete={ canDelete } onApply={ () => onApply( s ) } onDelete={ () => onDelete( s ) } />
+					<SegmentRow
+						key={ s.id }
+						segment={ s }
+						canDelete={ canDelete }
+						onApply={ () => onApply( s ) }
+						onDelete={ () => onDelete( s ) }
+					/>
 				) ) }
 			</ul>
 		</section>
@@ -436,7 +583,9 @@ function App() {
 	const [ deleteError, setDeleteError ] = useState( '' );
 	const toggleRef = useRef();
 
-	const active = arr( current?.rules ).filter( ( r ) => findOp( findColumn( columns, r.column ), r.op ) );
+	const active = arr( current?.rules ).filter( ( r ) =>
+		findOp( findColumn( columns, r.column ), r.op )
+	);
 	const count = active.length;
 	const shared = segments.filter( ( s ) => s.shared );
 	const personal = segments.filter( ( s ) => ! s.shared );
@@ -445,13 +594,22 @@ function App() {
 		if ( open ) {
 			setDraft( toDraft( current, columns ) );
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
 	}, [ open ] );
 
-	const updateRule = ( key, next ) => setDraft( ( d ) => ( { ...d, rules: d.rules.map( ( r ) => ( r.key === key ? next : r ) ) } ) );
-	const removeRule = ( key ) => setDraft( ( d ) => {
-		const rules = d.rules.filter( ( r ) => r.key !== key );
-		return { ...d, rules: rules.length ? rules : [ blankRule( columns ) ] };
-	} );
+	const updateRule = ( key, next ) =>
+		setDraft( ( d ) => ( {
+			...d,
+			rules: d.rules.map( ( r ) => ( r.key === key ? next : r ) ),
+		} ) );
+	const removeRule = ( key ) =>
+		setDraft( ( d ) => {
+			const rules = d.rules.filter( ( r ) => r.key !== key );
+			return {
+				...d,
+				rules: rules.length ? rules : [ blankRule( columns ) ],
+			};
+		} );
 
 	const removeChip = ( index ) => {
 		const rules = active.filter( ( _, i ) => i !== index );
@@ -461,12 +619,25 @@ function App() {
 	const confirmDelete = () => {
 		setDeleting( true );
 		setDeleteError( '' );
-		apiFetch( { path: `/corinthian/v1/sets/${ config.set }/segments/${ pendingDelete.id }`, method: 'DELETE' } )
+		apiFetch( {
+			path: `/corinthian/v1/sets/${ config.set }/segments/${ pendingDelete.id }`,
+			method: 'DELETE',
+		} )
 			.then( () => {
-				setSegments( ( list ) => list.filter( ( s ) => s.id !== pendingDelete.id ) );
+				setSegments( ( list ) =>
+					list.filter( ( s ) => s.id !== pendingDelete.id )
+				);
 				setPendingDelete( null );
 			} )
-			.catch( ( e ) => setDeleteError( e?.message || __( 'The segment could not be deleted.', 'corinthian-pro' ) ) )
+			.catch( ( e ) =>
+				setDeleteError(
+					e?.message ||
+						__(
+							'The segment could not be deleted.',
+							'corinthian-pro'
+						)
+				)
+			)
 			.finally( () => setDeleting( false ) );
 	};
 
@@ -484,7 +655,18 @@ function App() {
 				>
 					{ __( 'Filter', 'corinthian-pro' ) }
 					{ count > 0 && (
-						<span className="corinthian-filter__badge" aria-label={ sprintf( /* translators: %d: number of active filters */ _n( '%d active filter', '%d active filters', count, 'corinthian-pro' ), count ) }>
+						<span
+							className="corinthian-filter__badge"
+							aria-label={ sprintf(
+								/* translators: %d: number of active filters */ _n(
+									'%d active filter',
+									'%d active filters',
+									count,
+									'corinthian-pro'
+								),
+								count
+							) }
+						>
 							{ count }
 						</span>
 					) }
@@ -492,15 +674,31 @@ function App() {
 				<Dropdown
 					popoverProps={ { placement: 'bottom-start' } }
 					renderToggle={ ( { isOpen, onToggle } ) => (
-						<Button className="corinthian-filter__segments-toggle" variant="tertiary" aria-expanded={ isOpen } aria-haspopup="true" onClick={ onToggle }>
+						<Button
+							className="corinthian-filter__segments-toggle"
+							variant="tertiary"
+							aria-expanded={ isOpen }
+							aria-haspopup="true"
+							onClick={ onToggle }
+						>
 							{ __( 'Segments', 'corinthian-pro' ) }
 						</Button>
 					) }
 					renderContent={ ( { onClose } ) => (
 						<div className="corinthian-filter__segments">
-							{ ! segments.length && <p className="corinthian-filter__empty">{ __( 'No saved segments.', 'corinthian-pro' ) }</p> }
+							{ ! segments.length && (
+								<p className="corinthian-filter__empty">
+									{ __(
+										'No saved segments.',
+										'corinthian-pro'
+									) }
+								</p>
+							) }
 							<SegmentGroup
-								title={ __( 'Shared segments', 'corinthian-pro' ) }
+								title={ __(
+									'Shared segments',
+									'corinthian-pro'
+								) }
 								segments={ shared }
 								canDelete={ canShare }
 								onApply={ ( s ) => navigate( s.filter ) }
@@ -523,16 +721,28 @@ function App() {
 					) }
 				/>
 				{ active.length > 0 && (
-					<ul className="corinthian-filter__chips" aria-label={ __( 'Active filters', 'corinthian-pro' ) }>
+					<ul
+						className="corinthian-filter__chips"
+						aria-label={ __( 'Active filters', 'corinthian-pro' ) }
+					>
 						{ active.map( ( rule, i ) => {
 							const text = describeRule( rule, columns );
 							return (
-								<li key={ i } className="corinthian-filter__chip">
+								<li
+									key={ i }
+									className="corinthian-filter__chip"
+								>
 									<span>{ text }</span>
 									<Button
 										icon="no-alt"
 										size="small"
-										label={ sprintf( /* translators: %s: filter description */ __( 'Remove filter %s', 'corinthian-pro' ), text ) }
+										label={ sprintf(
+											/* translators: %s: filter description */ __(
+												'Remove filter %s',
+												'corinthian-pro'
+											),
+											text
+										) }
 										onClick={ () => removeChip( i ) }
 									/>
 								</li>
@@ -543,6 +753,7 @@ function App() {
 			</div>
 
 			{ open && (
+				// eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- form-level Escape handler
 				<div
 					id="corinthian-filter-panel"
 					className="corinthian-filter__panel"
@@ -558,39 +769,89 @@ function App() {
 					{ aiEnabled() && (
 						<DescribeFilter
 							columns={ columns }
-							onLoad={ ( filter ) => setDraft( toDraft( filter, columns ) ) }
+							onLoad={ ( filter ) =>
+								setDraft( toDraft( filter, columns ) )
+							}
 						/>
 					) }
 
 					<fieldset className="corinthian-filter__match">
-						<legend>{ __( 'Show rows that match', 'corinthian-pro' ) }</legend>
+						<legend>
+							{ __( 'Show rows that match', 'corinthian-pro' ) }
+						</legend>
+						{ /* eslint-disable-next-line jsx-a11y/label-has-associated-control -- label wraps its input */ }
 						<label>
-							<input type="radio" name="corinthian-match" checked={ draft.match === 'all' } onChange={ () => setDraft( { ...draft, match: 'all' } ) } />
+							<input
+								type="radio"
+								name="corinthian-match"
+								checked={ draft.match === 'all' }
+								onChange={ () =>
+									setDraft( { ...draft, match: 'all' } )
+								}
+							/>
 							{ __( 'All rules', 'corinthian-pro' ) }
 						</label>
+						{ /* eslint-disable-next-line jsx-a11y/label-has-associated-control -- label wraps its input */ }
 						<label>
-							<input type="radio" name="corinthian-match" checked={ draft.match === 'any' } onChange={ () => setDraft( { ...draft, match: 'any' } ) } />
+							<input
+								type="radio"
+								name="corinthian-match"
+								checked={ draft.match === 'any' }
+								onChange={ () =>
+									setDraft( { ...draft, match: 'any' } )
+								}
+							/>
 							{ __( 'Any rule', 'corinthian-pro' ) }
 						</label>
 					</fieldset>
 
 					<ul className="corinthian-filter__rules">
 						{ draft.rules.map( ( rule, i ) => (
-							<RuleRow key={ rule.key } index={ i } rule={ rule } columns={ columns } onChange={ ( next ) => updateRule( rule.key, next ) } onRemove={ () => removeRule( rule.key ) } />
+							<RuleRow
+								key={ rule.key }
+								index={ i }
+								rule={ rule }
+								columns={ columns }
+								onChange={ ( next ) =>
+									updateRule( rule.key, next )
+								}
+								onRemove={ () => removeRule( rule.key ) }
+							/>
 						) ) }
 					</ul>
 
 					<div className="corinthian-filter__actions">
-						<Button variant="tertiary" icon="plus" onClick={ () => setDraft( { ...draft, rules: [ ...draft.rules, blankRule( columns ) ] } ) }>
+						<Button
+							variant="tertiary"
+							icon="plus"
+							onClick={ () =>
+								setDraft( {
+									...draft,
+									rules: [
+										...draft.rules,
+										blankRule( columns ),
+									],
+								} )
+							}
+						>
 							{ __( 'Add rule', 'corinthian-pro' ) }
 						</Button>
 						<span className="corinthian-filter__spacer" />
 						{ count > 0 && (
-							<Button variant="tertiary" isDestructive onClick={ () => navigate( null ) }>
+							<Button
+								variant="tertiary"
+								isDestructive
+								onClick={ () => navigate( null ) }
+							>
 								{ __( 'Clear', 'corinthian-pro' ) }
 							</Button>
 						) }
-						<Button variant="primary" onClick={ () => navigate( cleanFilter( draft, columns ) ) }>
+						<Button
+							variant="primary"
+							onClick={ () =>
+								navigate( cleanFilter( draft, columns ) )
+							}
+						>
 							{ __( 'Apply', 'corinthian-pro' ) }
 						</Button>
 					</div>
@@ -599,7 +860,9 @@ function App() {
 						draft={ draft }
 						columns={ columns }
 						canShare={ canShare }
-						onSaved={ ( segment ) => setSegments( ( list ) => [ ...list, segment ] ) }
+						onSaved={ ( segment ) =>
+							setSegments( ( list ) => [ ...list, segment ] )
+						}
 					/>
 				</div>
 			) }
@@ -608,16 +871,42 @@ function App() {
 				<Modal
 					title={ __( 'Delete segment', 'corinthian-pro' ) }
 					size="small"
-					onRequestClose={ () => ! deleting && setPendingDelete( null ) }
+					onRequestClose={ () =>
+						! deleting && setPendingDelete( null )
+					}
 				>
-					<p>{ sprintf( /* translators: %s: segment name */ __( 'Delete the segment "%s"?', 'corinthian-pro' ), pendingDelete.name ) }</p>
-					{ deleteError && <p className="corinthian-filter__error" role="alert">{ deleteError }</p> }
+					<p>
+						{ sprintf(
+							/* translators: %s: segment name */ __(
+								'Delete the segment "%s"?',
+								'corinthian-pro'
+							),
+							pendingDelete.name
+						) }
+					</p>
+					{ deleteError && (
+						<p className="corinthian-filter__error" role="alert">
+							{ deleteError }
+						</p>
+					) }
 					<div className="corinthian-filter__actions">
 						<span className="corinthian-filter__spacer" />
-						<Button variant="tertiary" onClick={ () => setPendingDelete( null ) } disabled={ deleting } accessibleWhenDisabled>
+						<Button
+							variant="tertiary"
+							onClick={ () => setPendingDelete( null ) }
+							disabled={ deleting }
+							accessibleWhenDisabled
+						>
 							{ __( 'Cancel', 'corinthian-pro' ) }
 						</Button>
-						<Button variant="primary" isDestructive isBusy={ deleting } onClick={ confirmDelete } disabled={ deleting } accessibleWhenDisabled>
+						<Button
+							variant="primary"
+							isDestructive
+							isBusy={ deleting }
+							onClick={ confirmDelete }
+							disabled={ deleting }
+							accessibleWhenDisabled
+						>
 							{ __( 'Delete', 'corinthian-pro' ) }
 						</Button>
 					</div>

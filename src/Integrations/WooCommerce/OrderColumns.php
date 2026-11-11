@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\WooCommerce;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Order columns work on both order storages: the HPOS tables on the Orders screen
  * and posts plus meta on the legacy shop_order screen.

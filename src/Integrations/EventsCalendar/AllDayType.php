@@ -9,6 +9,8 @@ use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _EventAllDay is "yes" for all-day events and absent otherwise.
  */

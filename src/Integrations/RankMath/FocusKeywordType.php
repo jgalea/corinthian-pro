@@ -8,6 +8,8 @@ use Corinthian\Columns\Filterable;
 use Corinthian\Columns\Sortable;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * rank_math_focus_keyword: one comma-separated string, the first keyword is the primary.
  */

@@ -10,6 +10,8 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Move column sets between sites as JSON, or export one as PHP.
  */
@@ -61,6 +63,9 @@ final class TransferController {
 			if ( $ids && ! in_array( $set->id, $ids, true ) ) {
 				continue;
 			}
+			if ( str_starts_with( $set->screen, 'network-' ) && ! current_user_can( 'manage_network_options' ) ) {
+				continue;
+			}
 			$data = $set->to_array();
 			unset( $data['id'], $data['position'] );
 			$data['settings'] = self::without_user_ids( array_diff_key( (array) $data['settings'], array_flip( array( 'imported_from' ) ) ) );
@@ -89,14 +94,14 @@ final class TransferController {
 		foreach ( array_slice( $doc['sets'], 0, 200 ) as $data ) {
 			$data   = (array) $data;
 			$screen = (string) ( $data['screen'] ?? '' );
-			if ( ! $this->plugin->screens->get( $screen ) ) {
+			if ( ! $this->plugin->screens->get( $screen ) || ( str_starts_with( $screen, 'network-' ) && ! current_user_can( 'manage_network_options' ) ) ) {
 				$skipped[] = $screen;
 				continue;
 			}
 			$data['settings'] = self::without_user_ids( (array) ( $data['settings'] ?? array() ) );
 			unset( $data['settings']['readonly'], $data['settings']['code_key'] );
-			$id               = $this->plugin->sets->save( $data )->id;
-			$created[]        = $id;
+			$id        = $this->plugin->sets->save( $data )->id;
+			$created[] = $id;
 			if ( ! empty( $data['settings']['users_dropped'] ) ) {
 				$restricted[] = $id;
 			}

@@ -10,6 +10,8 @@ use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * A schema type chosen per post. No row means the post type default from
  * Yoast's content type settings applies.

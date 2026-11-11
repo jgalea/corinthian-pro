@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\EventsCalendar;
 
+defined( 'ABSPATH' ) || exit;
+
 final class EndType extends DateTimeType {
 
 	public function key(): string {

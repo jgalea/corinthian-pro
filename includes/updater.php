@@ -21,15 +21,23 @@ function corinthian_pro_latest_release() {
 	if ( 200 === wp_remote_retrieve_response_code( $response ) ) {
 		$data = json_decode( wp_remote_retrieve_body( $response ), true );
 		foreach ( (array) ( $data['assets'] ?? array() ) as $asset ) {
-			if ( 'corinthian-pro.zip' === ( $asset['name'] ?? '' ) ) {
-				$release = array(
-					'version' => ltrim( (string) $data['tag_name'], 'v' ),
-					'package' => $asset['browser_download_url'],
-					'url'     => $data['html_url'],
-					'notes'   => (string) ( $data['body'] ?? '' ),
-				);
+			if ( 'corinthian-pro.zip' !== ( $asset['name'] ?? '' ) ) {
+				continue;
+			}
+			$version = ltrim( (string) ( $data['tag_name'] ?? '' ), 'v' );
+			$package = (string) ( $asset['browser_download_url'] ?? '' );
+			$host    = (string) wp_parse_url( $package, PHP_URL_HOST );
+			$https   = 'https' === wp_parse_url( $package, PHP_URL_SCHEME );
+			if ( ! preg_match( '/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/', $version ) || ! $https || ! in_array( $host, array( 'github.com', 'objects.githubusercontent.com' ), true ) ) {
 				break;
 			}
+			$release = array(
+				'version' => $version,
+				'package' => $package,
+				'url'     => esc_url_raw( (string) ( $data['html_url'] ?? '' ) ),
+				'notes'   => (string) ( $data['body'] ?? '' ),
+			);
+			break;
 		}
 	}
 

@@ -7,6 +7,8 @@ use Corinthian\Columns\Filterable;
 use Corinthian\Columns\Sortable;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * A member's last activity, stored by BuddyPress as a GMT time in its activity
  * table (component "members", type "last_activity"), one row per member.

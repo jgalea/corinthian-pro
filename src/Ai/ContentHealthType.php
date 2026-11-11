@@ -11,6 +11,8 @@ use Corinthian\Columns\Types\WordCountMeta;
 use Corinthian\Screens\Screen;
 use WP_Post;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Rule-based content checks: thin, stale, no featured image, no excerpt.
  *

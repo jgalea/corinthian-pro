@@ -7,6 +7,8 @@ use Corinthian\Columns\Filterable;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Rank Math keeps one post meta row per schema, named rank_math_schema_{Type}
  * (for example rank_math_schema_BlogPosting) and holding the JSON-LD array,

@@ -6,6 +6,8 @@ use Corinthian\Columns\AbstractType;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 abstract class BpType extends AbstractType {
 
 	/** The BuddyPress component the column needs; the type is not registered without it. */

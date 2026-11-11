@@ -8,6 +8,8 @@ use Corinthian\Columns\Filterable;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * rank_math_robots: a serialized list such as array( 'index', 'nofollow' ).
  * Exactly one of index and noindex is always present when Rank Math writes it.

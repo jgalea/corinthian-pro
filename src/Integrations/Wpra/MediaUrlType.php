@@ -7,6 +7,8 @@ use Corinthian\Columns\Filterable;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * The audio or enclosure URLs of an item (podcasts, video feeds), one meta row each.
  */

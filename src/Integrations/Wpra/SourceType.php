@@ -8,6 +8,8 @@ use Corinthian\Columns\Sortable;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * The feed source an item came from. WPRA stores the source id in _wpra_source (one
  * row per source) and the sources themselves in its own table, so names come from

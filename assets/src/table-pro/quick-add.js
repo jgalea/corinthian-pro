@@ -31,21 +31,33 @@ function QuickAdd( { config } ) {
 			} );
 			window.location.reload();
 		} catch ( e ) {
-			setError( e.message || __( 'Could not create the draft.', 'corinthian-pro' ) );
+			setError(
+				e.message ||
+					__( 'Could not create the draft.', 'corinthian-pro' )
+			);
 			setBusy( false );
 		}
 	};
 
 	if ( ! open ) {
 		return (
-			<Button variant="secondary" icon="plus-alt2" onClick={ () => setOpen( true ) }>
+			<Button
+				variant="secondary"
+				icon="plus-alt2"
+				onClick={ () => setOpen( true ) }
+			>
 				{ __( 'Quick add', 'corinthian-pro' ) }
 			</Button>
 		);
 	}
 
 	return (
-		<form className="corinthian-quick-add" onSubmit={ submit } onKeyDown={ ( e ) => e.key === 'Escape' && setOpen( false ) }>
+		// eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- form-level Escape handler
+		<form
+			className="corinthian-quick-add"
+			onSubmit={ submit }
+			onKeyDown={ ( e ) => e.key === 'Escape' && setOpen( false ) }
+		>
 			<TextControl
 				ref={ input }
 				label={ config.label }
@@ -56,10 +68,20 @@ function QuickAdd( { config } ) {
 				__next40pxDefaultSize
 				__nextHasNoMarginBottom
 			/>
-			<Button variant="primary" type="submit" isBusy={ busy } disabled={ busy || ! title.trim() } __next40pxDefaultSize>
+			<Button
+				variant="primary"
+				type="submit"
+				isBusy={ busy }
+				disabled={ busy || ! title.trim() }
+				__next40pxDefaultSize
+			>
 				{ __( 'Add draft', 'corinthian-pro' ) }
 			</Button>
-			<Button variant="tertiary" onClick={ () => setOpen( false ) } __next40pxDefaultSize>
+			<Button
+				variant="tertiary"
+				onClick={ () => setOpen( false ) }
+				__next40pxDefaultSize
+			>
 				{ __( 'Cancel', 'corinthian-pro' ) }
 			</Button>
 			{ error && (
@@ -73,7 +95,11 @@ function QuickAdd( { config } ) {
 
 export function mountQuickAdd( parent ) {
 	const config = window.corinthianTable?.quickAdd;
-	if ( ! config || ! parent || parent.querySelector( '#corinthian-quick-add' ) ) {
+	if (
+		! config ||
+		! parent ||
+		parent.querySelector( '#corinthian-quick-add' )
+	) {
 		return;
 	}
 	const container = document.createElement( 'div' );

@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\WooCommerce;
 
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * The WooCommerce Orders list when orders live in the HPOS tables. Order ids are
  * not post ids there, so this screen reports its own object type, "order".

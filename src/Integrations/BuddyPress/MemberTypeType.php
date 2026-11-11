@@ -9,6 +9,8 @@ use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Member types are terms of BuddyPress's member type taxonomy attached to the
  * user id, named after the type.

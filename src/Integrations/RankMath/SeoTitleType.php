@@ -7,6 +7,8 @@ use Corinthian\Columns\Editable;
 use Corinthian\Columns\Filterable;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * rank_math_title: the title template as typed, with %variables% unexpanded.
  */

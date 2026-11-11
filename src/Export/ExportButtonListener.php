@@ -5,6 +5,8 @@ namespace CorinthianPro\Export;
 use Corinthian\Screens\Screen;
 use Corinthian\Sets\ColumnSet;
 
+defined( 'ABSPATH' ) || exit;
+
 final class ExportButtonListener {
 
 	public function register(): void {

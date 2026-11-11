@@ -11,6 +11,8 @@ use Corinthian\Screens\Screen;
 use DateTimeImmutable;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * An event's start or end. TEC stores the wall-clock time in the event's own
  * timezone (_EventStartDate) and the same instant in UTC (_EventStartDateUTC).

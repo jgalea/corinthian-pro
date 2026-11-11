@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\SeoPress;
 
 use Corinthian\Columns\Registry;
 
+defined( 'ABSPATH' ) || exit;
+
 final class SeoPressIntegration {
 
 	public static function register(): void {

@@ -1,6 +1,11 @@
 import { useState } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
-import { Button, TextControl, SelectControl, CheckboxControl } from '@wordpress/components';
+import {
+	Button,
+	TextControl,
+	SelectControl,
+	CheckboxControl,
+} from '@wordpress/components';
 import { chevronUp, chevronDown, trash } from '@wordpress/icons';
 import { move, newRuleId, operatorsFor, optionList } from './model';
 
@@ -8,10 +13,22 @@ const MAX_RULES = 20;
 
 const TONES = [
 	{ value: 'red', label: __( 'Red', 'corinthian-pro' ), color: '#d63638' },
-	{ value: 'amber', label: __( 'Amber', 'corinthian-pro' ), color: '#dba617' },
-	{ value: 'green', label: __( 'Green', 'corinthian-pro' ), color: '#00a32a' },
+	{
+		value: 'amber',
+		label: __( 'Amber', 'corinthian-pro' ),
+		color: '#dba617',
+	},
+	{
+		value: 'green',
+		label: __( 'Green', 'corinthian-pro' ),
+		color: '#00a32a',
+	},
 	{ value: 'blue', label: __( 'Blue', 'corinthian-pro' ), color: '#2271b1' },
-	{ value: 'purple', label: __( 'Purple', 'corinthian-pro' ), color: '#8a4fff' },
+	{
+		value: 'purple',
+		label: __( 'Purple', 'corinthian-pro' ),
+		color: '#8a4fff',
+	},
 	{ value: 'grey', label: __( 'Grey', 'corinthian-pro' ), color: '#787c82' },
 ];
 
@@ -57,7 +74,13 @@ function ValueInput( { rule, operator, label, onChange } ) {
 							key={ o.value }
 							label={ o.label }
 							checked={ list.includes( o.value ) }
-							onChange={ ( on ) => onChange( on ? [ ...list, o.value ] : list.filter( ( x ) => x !== o.value ) ) }
+							onChange={ ( on ) =>
+								onChange(
+									on
+										? [ ...list, o.value ]
+										: list.filter( ( x ) => x !== o.value )
+								)
+							}
 						/>
 					) ) }
 				</div>
@@ -71,13 +94,21 @@ function ValueInput( { rule, operator, label, onChange } ) {
 				__next40pxDefaultSize
 				label={ label }
 				value={ String( rule.value ?? '' ) }
-				options={ [ { value: '', label: __( 'Choose', 'corinthian-pro' ) }, ...options.map( ( o ) => ( { value: String( o.value ), label: o.label } ) ) ] }
+				options={ [
+					{ value: '', label: __( 'Choose', 'corinthian-pro' ) },
+					...options.map( ( o ) => ( {
+						value: String( o.value ),
+						label: o.label,
+					} ) ),
+				] }
 				onChange={ onChange }
 			/>
 		);
 	}
 	const type = input === 'number' || input === 'date' ? input : 'text';
-	const scalar = Array.isArray( rule.value ) ? rule.value.join( ', ' ) : rule.value ?? '';
+	const scalar = Array.isArray( rule.value )
+		? rule.value.join( ', ' )
+		: rule.value ?? '';
 	return (
 		<TextControl
 			__nextHasNoMarginBottom
@@ -90,14 +121,26 @@ function ValueInput( { rule, operator, label, onChange } ) {
 	);
 }
 
-function Rule( { rule, index, count, columns, typeMap, onChange, onMove, onRemove, ruleKey } ) {
+function Rule( {
+	rule,
+	index,
+	count,
+	columns,
+	typeMap,
+	onChange,
+	onMove,
+	onRemove,
+	ruleKey,
+} ) {
 	const column = columns.find( ( c ) => c.id === rule.column );
 	const operators = operatorsFor( column, typeMap[ column?.type ] );
 	const operator = operators.find( ( o ) => o.op === rule.op );
 	const n = index + 1;
 	const columnOptions = [
 		{ value: '', label: __( 'Choose a column', 'corinthian-pro' ) },
-		...( column || ! rule.column ? [] : [ { value: rule.column, label: rule.column } ] ),
+		...( column || ! rule.column
+			? []
+			: [ { value: rule.column, label: rule.column } ] ),
 		...columns.map( ( c ) => ( { value: c.id, label: c.label || c.id } ) ),
 	];
 
@@ -132,7 +175,10 @@ function Rule( { rule, index, count, columns, typeMap, onChange, onMove, onRemov
 						label={ __( 'Condition', 'corinthian-pro' ) }
 						value={ rule.op }
 						disabled={ operators.length === 0 }
-						options={ operators.map( ( o ) => ( { value: o.op, label: o.label } ) ) }
+						options={ operators.map( ( o ) => ( {
+							value: o.op,
+							label: o.label,
+						} ) ) }
 						onChange={ ( op ) => onChange( { op, value: '' } ) }
 					/>
 					<ValueInput
@@ -146,16 +192,33 @@ function Rule( { rule, index, count, columns, typeMap, onChange, onMove, onRemov
 					<legend>{ __( 'Colour', 'corinthian-pro' ) }</legend>
 					<div className="corinthian-tones">
 						{ TONES.map( ( t ) => (
-							<label key={ t.value } className={ 'corinthian-tone' + ( rule.tone === t.value ? ' is-selected' : '' ) }>
+							// eslint-disable-next-line jsx-a11y/label-has-associated-control -- label wraps its input
+							<label
+								key={ t.value }
+								className={
+									'corinthian-tone' +
+									( rule.tone === t.value
+										? ' is-selected'
+										: '' )
+								}
+							>
 								<input
 									type="radio"
 									name={ `${ ruleKey }-tone` }
 									value={ t.value }
 									checked={ rule.tone === t.value }
-									onChange={ () => onChange( { tone: t.value } ) }
+									onChange={ () =>
+										onChange( { tone: t.value } )
+									}
 								/>
-								<span className="corinthian-tone__swatch" style={ { background: t.color } } aria-hidden="true" />
-								<span className="corinthian-tone__name">{ t.label }</span>
+								<span
+									className="corinthian-tone__swatch"
+									style={ { background: t.color } }
+									aria-hidden="true"
+								/>
+								<span className="corinthian-tone__name">
+									{ t.label }
+								</span>
 							</label>
 						) ) }
 					</div>
@@ -171,16 +234,28 @@ function Rule( { rule, index, count, columns, typeMap, onChange, onMove, onRemov
 						<legend>{ __( 'Apply to', 'corinthian-pro' ) }</legend>
 						<div className="corinthian-scope">
 							{ [
-								{ value: 'cell', label: __( 'Cell', 'corinthian-pro' ) },
-								{ value: 'row', label: __( 'Row', 'corinthian-pro' ) },
+								{
+									value: 'cell',
+									label: __( 'Cell', 'corinthian-pro' ),
+								},
+								{
+									value: 'row',
+									label: __( 'Row', 'corinthian-pro' ),
+								},
 							].map( ( s ) => (
-								<label key={ s.value } className="corinthian-scope__option">
+								// eslint-disable-next-line jsx-a11y/label-has-associated-control -- label wraps its input
+								<label
+									key={ s.value }
+									className="corinthian-scope__option"
+								>
 									<input
 										type="radio"
 										name={ `${ ruleKey }-scope` }
 										value={ s.value }
 										checked={ rule.scope === s.value }
-										onChange={ () => onChange( { scope: s.value } ) }
+										onChange={ () =>
+											onChange( { scope: s.value } )
+										}
 									/>
 									<span>{ s.label }</span>
 								</label>
@@ -227,14 +302,31 @@ function Rule( { rule, index, count, columns, typeMap, onChange, onMove, onRemov
 
 export default function Formatting( { rules, columns, typeMap, onChange } ) {
 	const [ announce, setAnnounce ] = useState( '' );
-	const eligible = columns.filter( ( c ) => typeMap[ c.type ]?.filterable && c.settings?.filterable !== false );
+	const eligible = columns.filter(
+		( c ) =>
+			typeMap[ c.type ]?.filterable && c.settings?.filterable !== false
+	);
 
 	const add = () => {
 		const first = eligible[ 0 ];
 		const op = operatorsFor( first, typeMap[ first?.type ] )[ 0 ]?.op || '';
-		onChange( [ ...rules, { id: newRuleId( rules ), column: first?.id || '', op, value: '', tone: 'red', bold: false, scope: 'cell' } ] );
+		onChange( [
+			...rules,
+			{
+				id: newRuleId( rules ),
+				column: first?.id || '',
+				op,
+				value: '',
+				tone: 'red',
+				bold: false,
+				scope: 'cell',
+			},
+		] );
 	};
-	const patch = ( id, changes ) => onChange( rules.map( ( r ) => ( r.id === id ? { ...r, ...changes } : r ) ) );
+	const patch = ( id, changes ) =>
+		onChange(
+			rules.map( ( r ) => ( r.id === id ? { ...r, ...changes } : r ) )
+		);
 	const reorder = ( from, to ) => {
 		onChange( move( rules, from, to ) );
 		setAnnounce(
@@ -249,9 +341,13 @@ export default function Formatting( { rules, columns, typeMap, onChange } ) {
 
 	return (
 		<div className="corinthian-card corinthian-formatting">
-			<h2 className="corinthian-heading">{ __( 'Conditional formatting', 'corinthian-pro' ) }</h2>
+			<h2 className="corinthian-heading">
+				{ __( 'Conditional formatting', 'corinthian-pro' ) }
+			</h2>
 			{ rules.length === 0 ? (
-				<p className="corinthian-muted">{ __( 'No rules yet.', 'corinthian-pro' ) }</p>
+				<p className="corinthian-muted">
+					{ __( 'No rules yet.', 'corinthian-pro' ) }
+				</p>
 			) : (
 				<ol className="corinthian-rules">
 					{ rules.map( ( rule, index ) => (
@@ -263,9 +359,15 @@ export default function Formatting( { rules, columns, typeMap, onChange } ) {
 							count={ rules.length }
 							columns={ eligible }
 							typeMap={ typeMap }
-							onChange={ ( changes ) => patch( rule.id, changes ) }
+							onChange={ ( changes ) =>
+								patch( rule.id, changes )
+							}
 							onMove={ reorder }
-							onRemove={ () => onChange( rules.filter( ( r ) => r.id !== rule.id ) ) }
+							onRemove={ () =>
+								onChange(
+									rules.filter( ( r ) => r.id !== rule.id )
+								)
+							}
 						/>
 					) ) }
 				</ol>
@@ -274,7 +376,13 @@ export default function Formatting( { rules, columns, typeMap, onChange } ) {
 				{ announce }
 			</div>
 			<div>
-				<Button variant="secondary" onClick={ add } disabled={ eligible.length === 0 || rules.length >= MAX_RULES }>
+				<Button
+					variant="secondary"
+					onClick={ add }
+					disabled={
+						eligible.length === 0 || rules.length >= MAX_RULES
+					}
+				>
 					{ __( 'Add rule', 'corinthian-pro' ) }
 				</Button>
 			</div>

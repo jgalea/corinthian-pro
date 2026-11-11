@@ -42,6 +42,14 @@ bin/build.sh /path/to/empty/folder   # release zip from the committed HEAD
 
 Integration tests run inside a WordPress test environment that also loads the free plugin from `../corinthian-admin-column-manager`. End-to-end scripts in `tests/e2e/` read `WP_CLI_CONTAINER` and `SHOTS_DIR` from the environment.
 
+## Changelog
+
+### Unreleased
+
+- Importing or exporting column sets leaves out network screens unless you can manage the network.
+- CSV export neutralises formula cells that start with any Unicode space.
+- Uninstall cleans up every site on large networks.
+
 ## License
 
 GPL-2.0-or-later. See [LICENSE](LICENSE).

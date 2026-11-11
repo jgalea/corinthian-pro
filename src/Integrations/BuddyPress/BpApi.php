@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\BuddyPress;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * The only place that calls BuddyPress. Calls go through call_user_func so
  * the plugin analyses cleanly without BuddyPress's stubs.

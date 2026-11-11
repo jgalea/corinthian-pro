@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\Pods;
 
+defined( 'ABSPATH' ) || exit;
+
 final class FieldRenderer {
 
 	private const CAP = 5;

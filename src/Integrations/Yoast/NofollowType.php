@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Yoast;
 
 use Corinthian\Columns\Config;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _yoast_wpseo_meta-robots-nofollow: '1' for nofollow; follow is the default and is not stored.
  */

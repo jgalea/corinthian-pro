@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Yoast;
 
 use Corinthian\Columns\Config;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _yoast_wpseo_is_cornerstone: '1' for cornerstone content.
  */

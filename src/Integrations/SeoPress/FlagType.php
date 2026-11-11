@@ -10,6 +10,8 @@ use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * A SEOPress checkbox stored as 'yes' when ticked. Unticked deletes the row.
  */

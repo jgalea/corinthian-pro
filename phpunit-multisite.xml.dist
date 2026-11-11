@@ -9,6 +9,7 @@
 			<file>tests/integration/MultisiteExportTest.php</file>
 			<file>tests/integration/MultisiteEditTest.php</file>
 			<file>tests/integration/MultisiteFilterTest.php</file>
+			<file>tests/integration/MultisiteTransferTest.php</file>
 		</testsuite>
 	</testsuites>
 	<groups>

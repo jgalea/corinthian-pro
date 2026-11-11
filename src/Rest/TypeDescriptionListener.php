@@ -8,6 +8,8 @@ use Corinthian\Columns\Editable;
 use Corinthian\Columns\Filterable;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 final class TypeDescriptionListener {
 
 	public function register(): void {
@@ -28,7 +30,15 @@ final class TypeDescriptionListener {
 		if ( $type instanceof Filterable ) {
 			// Operators can vary with a column's settings. filter_operators holds the ones for default
 			// settings; filter_operators_by_setting holds the ones that differ per select option.
-			$default                         = $type->filter_operators( Config::from_array( array( 'id' => 'x', 'type' => $type->key() ) ), $screen );
+			$default                         = $type->filter_operators(
+				Config::from_array(
+					array(
+						'id'   => 'x',
+						'type' => $type->key(),
+					)
+				),
+				$screen
+			);
 			$description['filter_operators'] = $default;
 			$variants                        = array();
 			foreach ( (array) ( $description['settings'] ?? array() ) as $field ) {

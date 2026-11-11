@@ -10,6 +10,8 @@ use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * A Yoast switch stored as '1' when on. Off is the default, which Yoast does
  * not store, so turning it off deletes the row.

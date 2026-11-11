@@ -17,6 +17,8 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Plain-English filters and value suggestions for the list table.
  *

@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\BuddyPress;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * BuddyPress marks a spammer in the users table: user_status 1 on a single
  * site, the spam column on a network. bp_is_user_spammer() reads both.

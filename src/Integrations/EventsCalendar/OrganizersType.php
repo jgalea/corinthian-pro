@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\EventsCalendar;
 
+defined( 'ABSPATH' ) || exit;
+
 final class OrganizersType extends LinkedPostsType {
 
 	public function key(): string {

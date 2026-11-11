@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\BuddyPress;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 final class GroupsCountType extends BpType {
 
 	public function key(): string {

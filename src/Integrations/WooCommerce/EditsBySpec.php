@@ -6,6 +6,8 @@ use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 trait EditsBySpec {
 
 	public function edit_field( Config $config, Screen $screen ): array {

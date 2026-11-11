@@ -4,6 +4,8 @@ namespace CorinthianPro\Ai;
 
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Thin wrapper around the WordPress AI client (WordPress 7.0+).
  *

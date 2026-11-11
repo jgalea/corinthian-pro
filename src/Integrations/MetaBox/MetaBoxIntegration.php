@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\MetaBox;
 
 use Corinthian\Columns\Registry;
 
+defined( 'ABSPATH' ) || exit;
+
 final class MetaBoxIntegration {
 
 	public static function register(): void {

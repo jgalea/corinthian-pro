@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\EventsCalendar;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 final class TimezoneType extends TecType {
 
 	public function key(): string {

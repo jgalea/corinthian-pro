@@ -4,6 +4,8 @@ namespace CorinthianPro\Export;
 
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Plain values for WordPress's own columns, which only render HTML.
  * Columns other plugins add export through the corinthian_export_native_value filter.
@@ -98,7 +100,14 @@ final class NativeValues {
 			'blogname'    => $site->domain . $site->path,
 			'lastupdated' => $site->last_updated,
 			'registered'  => $site->registered,
-			'users'       => count( get_users( array( 'blog_id' => $id, 'fields' => 'ID' ) ) ),
+			'users'       => count(
+				get_users(
+					array(
+						'blog_id' => $id,
+						'fields'  => 'ID',
+					)
+				)
+			),
 			default       => null,
 		};
 	}

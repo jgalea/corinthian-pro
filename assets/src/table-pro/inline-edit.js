@@ -1,3 +1,4 @@
+/* global CSS */
 import apiFetch from '@wordpress/api-fetch';
 import { __, sprintf } from '@wordpress/i18n';
 import { createRoot, useState, useRef, useEffect } from '@wordpress/element';
@@ -13,7 +14,11 @@ function Editor( { column, id, label, initial, onDone, onCancel } ) {
 	const root = useRef();
 
 	useEffect( () => {
-		root.current?.querySelector( 'input:not([type=checkbox]), textarea, select, button' )?.focus();
+		root.current
+			?.querySelector(
+				'input:not([type=checkbox]), textarea, select, button'
+			)
+			?.focus();
 	}, [] );
 
 	const submit = ( event ) => {
@@ -26,11 +31,20 @@ function Editor( { column, id, label, initial, onDone, onCancel } ) {
 		apiFetch( {
 			path: '/corinthian/v1/edit',
 			method: 'POST',
-			data: { screen: config.screen, set: config.set, column: column.id, id, value },
+			data: {
+				screen: config.screen,
+				set: config.set,
+				column: column.id,
+				id,
+				value,
+			},
 		} )
 			.then( ( response ) => onDone( response ) )
 			.catch( ( e ) => {
-				setError( e?.message || __( 'The change could not be saved.', 'corinthian-pro' ) );
+				setError(
+					e?.message ||
+						__( 'The change could not be saved.', 'corinthian-pro' )
+				);
 				setBusy( false );
 			} );
 	};
@@ -40,19 +54,50 @@ function Editor( { column, id, label, initial, onDone, onCancel } ) {
 			event.preventDefault();
 			event.stopPropagation();
 			onCancel();
-		} else if ( event.key === 'Enter' && event.target.tagName === 'TEXTAREA' && ! event.shiftKey ) {
+		} else if (
+			event.key === 'Enter' &&
+			event.target.tagName === 'TEXTAREA' &&
+			! event.shiftKey
+		) {
 			submit( event );
 		}
 	};
 
 	return (
-		<form ref={ root } className="corinthian-edit" onSubmit={ submit } onKeyDown={ onKeyDown } noValidate>
-			<FieldInput field={ column.field } value={ value } onChange={ setValue } label={ label } autoFocus />
+		// eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- form-level Escape handler
+		<form
+			ref={ root }
+			className="corinthian-edit"
+			onSubmit={ submit }
+			onKeyDown={ onKeyDown }
+			noValidate
+		>
+			<FieldInput
+				field={ column.field }
+				value={ value }
+				onChange={ setValue }
+				label={ label }
+				// eslint-disable-next-line jsx-a11y/no-autofocus -- field opens on demand, focus is intended
+				autoFocus
+			/>
 			<div className="corinthian-edit__actions">
-				<Button variant="primary" size="compact" type="submit" isBusy={ busy } accessibleWhenDisabled disabled={ busy }>
+				<Button
+					variant="primary"
+					size="compact"
+					type="submit"
+					isBusy={ busy }
+					accessibleWhenDisabled
+					disabled={ busy }
+				>
 					{ __( 'Save', 'corinthian-pro' ) }
 				</Button>
-				<Button variant="tertiary" size="compact" onClick={ onCancel } disabled={ busy } accessibleWhenDisabled>
+				<Button
+					variant="tertiary"
+					size="compact"
+					onClick={ onCancel }
+					disabled={ busy }
+					accessibleWhenDisabled
+				>
 					{ __( 'Cancel', 'corinthian-pro' ) }
 				</Button>
 			</div>
@@ -69,7 +114,10 @@ function open( td, column, id, pencil ) {
 	if ( td.classList.contains( 'corinthian-editing' ) ) {
 		return;
 	}
-	const label = columnLabel( column.tableKey, __( 'Value', 'corinthian-pro' ) );
+	const label = columnLabel(
+		column.tableKey,
+		__( 'Value', 'corinthian-pro' )
+	);
 	const original = [ ...td.childNodes ].filter( ( n ) => n !== pencil );
 	original.forEach( ( n ) => n.remove() );
 	pencil.hidden = true;
@@ -86,7 +134,9 @@ function open( td, column, id, pencil ) {
 			host.remove();
 			if ( typeof html === 'string' ) {
 				pencil.insertAdjacentHTML( 'beforebegin', html );
-				document.dispatchEvent( new CustomEvent( 'corinthian:cell-updated' ) );
+				document.dispatchEvent(
+					new CustomEvent( 'corinthian:cell-updated' )
+				);
 			} else {
 				original.forEach( ( n ) => td.insertBefore( n, pencil ) );
 			}
@@ -102,10 +152,18 @@ function open( td, column, id, pencil ) {
 			column={ column }
 			id={ id }
 			label={ label }
-			initial={ stored !== undefined && column.field.input !== 'multiselect' ? stored : emptyValue( column.field ) }
+			initial={
+				stored !== undefined && column.field.input !== 'multiselect'
+					? stored
+					: emptyValue( column.field )
+			}
 			onCancel={ () => close() }
 			onDone={ ( response ) => {
-				if ( response.value !== null && response.value !== undefined && typeof response.value !== 'object' ) {
+				if (
+					response.value !== null &&
+					response.value !== undefined &&
+					typeof response.value !== 'object'
+				) {
 					td.dataset.corinthianValue = String( response.value );
 				}
 				close( response.html ?? '' );
@@ -118,12 +176,25 @@ function addPencil( td, column, id ) {
 	if ( td.querySelector( ':scope > .corinthian-edit-pencil' ) ) {
 		return;
 	}
-	const label = columnLabel( column.tableKey, __( 'value', 'corinthian-pro' ) );
+	const label = columnLabel(
+		column.tableKey,
+		__( 'value', 'corinthian-pro' )
+	);
 	const pencil = document.createElement( 'button' );
 	pencil.type = 'button';
 	pencil.className = 'corinthian-edit-pencil';
-	pencil.setAttribute( 'aria-label', sprintf( /* translators: %s: column name */ __( 'Edit %s', 'corinthian-pro' ), label ) );
-	pencil.innerHTML = '<span class="dashicons dashicons-edit" aria-hidden="true"></span>';
+	pencil.setAttribute(
+		'aria-label',
+		sprintf(
+			/* translators: %s: column name */ __(
+				'Edit %s',
+				'corinthian-pro'
+			),
+			label
+		)
+	);
+	pencil.innerHTML =
+		'<span class="dashicons dashicons-edit" aria-hidden="true"></span>';
 	pencil.addEventListener( 'click', ( event ) => {
 		event.preventDefault();
 		event.stopPropagation();
@@ -138,16 +209,20 @@ export function mountInlineEdit() {
 	if ( ! columns.length ) {
 		return;
 	}
-	document.querySelectorAll( 'table.wp-list-table tbody tr' ).forEach( ( tr ) => {
-		const id = rowId( tr );
-		if ( ! id ) {
-			return;
-		}
-		columns.forEach( ( column ) => {
-			const td = tr.querySelector( `td.column-${ CSS.escape( column.tableKey ) }` );
-			if ( td ) {
-				addPencil( td, column, id );
+	document
+		.querySelectorAll( 'table.wp-list-table tbody tr' )
+		.forEach( ( tr ) => {
+			const id = rowId( tr );
+			if ( ! id ) {
+				return;
 			}
+			columns.forEach( ( column ) => {
+				const td = tr.querySelector(
+					`td.column-${ CSS.escape( column.tableKey ) }`
+				);
+				if ( td ) {
+					addPencil( td, column, id );
+				}
+			} );
 		} );
-	} );
 }

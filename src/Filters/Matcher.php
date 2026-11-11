@@ -5,6 +5,8 @@ namespace CorinthianPro\Filters;
 use Corinthian\Screens\Screen;
 use Corinthian\Sets\ColumnSet;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Runs a FilterSet as a query on a screen and returns matching ids.
  */
@@ -29,7 +31,7 @@ final class Matcher {
 			$clauses['where'] .= ' AND ' . $sql['where'];
 			return $clauses;
 		};
-		$ids = array();
+		$ids    = array();
 		switch ( $screen->object_type() ) {
 			case 'post':
 				add_filter( 'posts_clauses', $append );
@@ -102,15 +104,15 @@ final class Matcher {
 				\Corinthian\Screens\SiteQuery::hook();
 				$apply = static fn( $clauses ) => \Corinthian\Screens\SiteQuery::narrow( $clauses, $sql );
 				add_filter( 'sites_clauses', $apply );
-				$ids = ( new \WP_Site_Query(
+				$ids   = ( new \WP_Site_Query(
 					array(
-						'fields'                          => 'ids',
-						'number'                          => $limit,
-						'orderby'                         => 'id',
-						'order'                           => 'ASC',
-						'network_id'                      => get_current_network_id(),
-						'site__in'                        => $within ?? array(),
-						'no_found_rows'                   => true,
+						'fields'        => 'ids',
+						'number'        => $limit,
+						'orderby'       => 'id',
+						'order'         => 'ASC',
+						'network_id'    => get_current_network_id(),
+						'site__in'      => $within ?? array(),
+						'no_found_rows' => true,
 						\Corinthian\Screens\SiteQuery::UNCACHED => true,
 					)
 				) )->get_sites();

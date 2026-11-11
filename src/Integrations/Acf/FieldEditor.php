@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\Acf;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Editor shape, current value and validation for the editable ACF kinds.
  */

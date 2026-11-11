@@ -8,6 +8,8 @@ use Corinthian\Columns\Filterable;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * rank_math_canonical_url: an absolute URL, run through esc_url_raw by Rank Math.
  */

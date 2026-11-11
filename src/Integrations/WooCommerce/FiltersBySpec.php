@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\WooCommerce;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 trait FiltersBySpec {
 
 	public function filter_operators( Config $config, Screen $screen ): array {

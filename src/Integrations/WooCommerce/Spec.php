@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\WooCommerce;
 
 use Closure;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * What a WooCommerce column shows and how it sorts, filters and edits.
  */

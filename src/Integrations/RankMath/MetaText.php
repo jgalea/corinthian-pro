@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\RankMath;
 
 use Corinthian\Columns\Types\PostFilter;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * "contains" and "is empty" on a text meta value, as an EXISTS subquery so a
  * post with duplicate rows still counts once.

@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Acf;
 
 use Corinthian\Columns\Registry;
 
+defined( 'ABSPATH' ) || exit;
+
 final class AcfIntegration {
 
 	public static function register(): void {

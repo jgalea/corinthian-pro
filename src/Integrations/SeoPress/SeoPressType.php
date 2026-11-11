@@ -7,6 +7,8 @@ use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Post meta written by SEOPress (_seopress_*). SEOPress keeps these as plain
  * post meta and drops writes from roles its Security settings block, so save()

@@ -4,6 +4,8 @@ namespace CorinthianPro\Filters;
 
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 final class QuerySqlListener {
 
 	public function register(): void {

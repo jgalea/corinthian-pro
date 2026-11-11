@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Yoast;
 
 use Corinthian\Columns\Config;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _yoast_wpseo_focuskw: the single focus keyphrase Yoast's free editor stores.
  */

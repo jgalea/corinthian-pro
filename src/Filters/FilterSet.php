@@ -5,6 +5,8 @@ namespace CorinthianPro\Filters;
 use Corinthian\Columns\Filterable;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * A group of smart-filter rules: { match: "all"|"any", rules: [ { column, op, value } ] }.
  *

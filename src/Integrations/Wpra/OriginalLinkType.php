@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\Wpra;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 final class OriginalLinkType extends MetaTextType {
 
 	public function key(): string {

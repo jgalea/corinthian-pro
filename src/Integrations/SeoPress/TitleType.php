@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\SeoPress;
 
 use Corinthian\Columns\Config;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _seopress_titles_title: the title template as typed, with %%variables%% unexpanded.
  */

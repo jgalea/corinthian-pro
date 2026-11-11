@@ -6,6 +6,9 @@ use Corinthian\Columns\Editable;
 use Corinthian\Plugin;
 use Corinthian\Screens\Screen;
 use Corinthian\Sets\ColumnSet;
+use CorinthianPro\Rest\BulkDeleteController;
+
+defined( 'ABSPATH' ) || exit;
 
 final class EditPayload {
 
@@ -23,8 +26,9 @@ final class EditPayload {
 		if ( ! is_array( $data ) ) {
 			return $data;
 		}
-		$data['editable'] = $this->editable_columns( $screen, $set );
-		$data['quickAdd'] = $this->quick_add( $screen, $set );
+		$data['editable']   = $this->editable_columns( $screen, $set );
+		$data['quickAdd']   = $this->quick_add( $screen, $set );
+		$data['bulkDelete'] = $this->bulk_delete( $screen );
 		return $data;
 	}
 
@@ -50,6 +54,18 @@ final class EditPayload {
 	}
 
 	/**
+	 * @return array{permanentOnly:bool}|null
+	 */
+	private function bulk_delete( Screen $screen ): ?array {
+		if ( ! BulkDeleteController::supports( $screen ) ) {
+			return null;
+		}
+		return array(
+			'permanentOnly' => 'term' === $screen->object_type() || 0 === EMPTY_TRASH_DAYS,
+		);
+	}
+
+	/**
 	 * Quick add creates a draft through core's posts REST route, so only post
 	 * types exposed there qualify, and core applies its own permission checks.
 	 *
@@ -64,8 +80,8 @@ final class EditPayload {
 			return null;
 		}
 		return array(
-			'restBase'  => (string) ( $type->rest_base ?: $type->name ),
-			'namespace' => (string) ( $type->rest_namespace ?: 'wp/v2' ),
+			'restBase'  => (string) ( '' !== (string) $type->rest_base ? $type->rest_base : $type->name ),
+			'namespace' => (string) ( '' !== (string) $type->rest_namespace ? $type->rest_namespace : 'wp/v2' ),
 			'label'     => (string) $type->labels->add_new_item,
 		);
 	}

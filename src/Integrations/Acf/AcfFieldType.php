@@ -9,6 +9,8 @@ use Corinthian\Columns\Filterable;
 use Corinthian\Columns\Sortable;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Any top-level ACF field on a post, user or term list. Unsortable kinds
  * (relations, repeaters, multi-value choices) leave the query unchanged.

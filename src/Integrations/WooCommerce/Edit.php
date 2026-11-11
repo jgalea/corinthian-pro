@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\WooCommerce;
 
 use Closure;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * How one column is edited: the editor input, the current value for it, and the
  * change to make on the WooCommerce object.

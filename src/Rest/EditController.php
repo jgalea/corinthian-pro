@@ -14,6 +14,8 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Inline and bulk edits from the list table.
  *
@@ -57,14 +59,18 @@ final class EditController {
 			return $ctx;
 		}
 		[ $screen, , $config, $type ] = $ctx;
-		$id                            = (int) $request->get_param( 'id' );
+		$id                           = (int) $request->get_param( 'id' );
 
 		if ( ! self::can_edit( $screen, $id ) ) {
 			return new WP_Error( 'corinthian_forbidden', __( 'You cannot edit this item.', 'corinthian-pro' ), array( 'status' => 403 ) );
 		}
 		$result = $type->save( $id, $config, $screen, $request->get_param( 'value' ), 'set' );
 		if ( is_wp_error( $result ) ) {
-			$result->add_data( array( 'status' => 400 ) );
+			$denied = in_array( $result->get_error_code(), array( 'corinthian_forbidden', 'corinthian_protected' ), true );
+			$data   = (array) $result->get_error_data();
+			if ( empty( $data['status'] ) ) {
+				$result->add_data( array( 'status' => $denied ? 403 : 400 ) );
+			}
 			return $result;
 		}
 		self::clean_cache( $screen, $id );
@@ -89,8 +95,9 @@ final class EditController {
 			return $ctx;
 		}
 		[ $screen, $set, $config, $type ] = $ctx;
-		$field                             = $type->edit_field( $config, $screen );
-		$mode                          = sanitize_key( (string) ( $request->get_param( 'mode' ) ?: 'set' ) );
+		$field                            = $type->edit_field( $config, $screen );
+		$mode                             = sanitize_key( (string) $request->get_param( 'mode' ) );
+		$mode                             = '' !== $mode ? $mode : 'set';
 		if ( ! in_array( $mode, (array) ( $field['bulk'] ?? array() ), true ) ) {
 			return new WP_Error( 'corinthian_bad_mode', __( 'This column does not support that bulk edit.', 'corinthian-pro' ), array( 'status' => 400 ) );
 		}
@@ -172,10 +179,15 @@ final class EditController {
 			'post'    => get_post( $id ) && ( '' === $screen->subtype() || get_post_type( $id ) === $screen->subtype() ) && current_user_can( 'edit_post', $id ),
 			'user'    => (bool) get_userdata( $id ) && current_user_can( 'edit_user', $id ),
 			'comment' => (bool) get_comment( $id ) && current_user_can( 'edit_comment', $id ),
-			'term'    => ( $term = get_term( $id ) ) instanceof \WP_Term && $term->taxonomy === $screen->subtype() && current_user_can( 'edit_term', $id ),
+			'term'    => self::can_edit_term( $screen, $id ),
 			'site'    => get_site( $id ) instanceof \WP_Site && current_user_can( 'manage_sites' ),
 			default   => $screen->can_edit_object( $id ),
 		};
+	}
+
+	private static function can_edit_term( Screen $screen, int $id ): bool {
+		$term = get_term( $id );
+		return $term instanceof \WP_Term && $term->taxonomy === $screen->subtype() && current_user_can( 'edit_term', $id );
 	}
 
 	private static function clean_cache( Screen $screen, int $id ): void {
