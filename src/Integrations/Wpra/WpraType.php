@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\Wpra;
 use Corinthian\Columns\AbstractType;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 abstract class WpraType extends AbstractType {
 
 	public function group(): string {

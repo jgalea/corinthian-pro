@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Pods;
 
 use Corinthian\Columns\Registry;
 
+defined( 'ABSPATH' ) || exit;
+
 final class PodsIntegration {
 
 	public static function register(): void {

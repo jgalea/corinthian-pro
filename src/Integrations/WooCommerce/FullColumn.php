@@ -6,6 +6,8 @@ use Corinthian\Columns\Editable;
 use Corinthian\Columns\Filterable;
 use Corinthian\Columns\Sortable;
 
+defined( 'ABSPATH' ) || exit;
+
 final class FullColumn extends Column implements Sortable, Filterable, Editable {
 
 	use SortsBySpec;

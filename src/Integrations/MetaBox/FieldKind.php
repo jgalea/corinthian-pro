@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\MetaBox;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * What a Meta Box field type can do. Every per-feature decision (render, sort,
  * filter, edit) starts from family() so the rules live in one table.

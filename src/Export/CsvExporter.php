@@ -8,6 +8,8 @@ use Corinthian\Plugin;
 use Corinthian\Screens\Screen;
 use Corinthian\Sets\ColumnSet;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Streams the current list (active set, filter and sort) as CSV.
  */
@@ -88,7 +90,8 @@ final class CsvExporter {
 			}
 			$offset += self::BATCH;
 			$this->flush_caches( $screen, $ids );
-		} while ( count( $ids ) === self::BATCH );
+			$more = count( $ids ) === self::BATCH;
+		} while ( $more );
 
 		fclose( $out ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose -- Closing the php://output stream.
 	}
@@ -105,10 +108,26 @@ final class CsvExporter {
 			$value = '';
 		}
 		$value = (string) $value;
-		if ( '' !== $value && in_array( $value[0], array( '=', '+', '-', '@', "\t", "\r" ), true ) && ! is_numeric( $value ) ) {
+		$clean = wp_check_invalid_utf8( $value, true );
+		$bad   = $clean !== $value;
+		$value = $clean;
+		$risky = array( '=', '+', '-', '@', "\t", "\r", '＝', '＋', '－', '＠' );
+		$lead  = preg_replace( '/^[\p{Z}\s\x{FEFF}]+/u', '', $value );
+		if ( '' !== $value && ( $bad || null === $lead || in_array( mb_substr( $value, 0, 1 ), $risky, true ) || in_array( mb_substr( $lead, 0, 1 ), $risky, true ) ) && ! is_numeric( $value ) ) {
 			$value = "'" . $value;
 		}
 		return $value;
+	}
+
+	/**
+	 * The list's status view when it names a real status, otherwise every status the list shows.
+	 */
+	private static function post_status( Screen $screen ): string {
+		$status = self::query_text( 'post_status' );
+		if ( 'attachment' === $screen->subtype() ) {
+			return 'inherit';
+		}
+		return in_array( $status, get_post_stati(), true ) ? $status : 'any';
 	}
 
 	private static function query_text( string $key, string $default = '' ): string {
@@ -158,7 +177,7 @@ final class CsvExporter {
 				add_filter( 'posts_clauses', $append );
 				$args = array(
 					'post_type'        => $screen->subtype(),
-					'post_status'      => 'attachment' === $screen->subtype() ? 'inherit' : 'any',
+					'post_status'      => self::post_status( $screen ),
 					'fields'           => 'ids',
 					'posts_per_page'   => self::BATCH,
 					'offset'           => $offset,
@@ -169,6 +188,18 @@ final class CsvExporter {
 				);
 				if ( '' !== $search ) {
 					$args['s'] = $search;
+				}
+				if ( absint( self::query_text( 'author' ) ) > 0 ) {
+					$args['author'] = absint( self::query_text( 'author' ) );
+				}
+				if ( absint( self::query_text( 'cat' ) ) > 0 ) {
+					$args['cat'] = absint( self::query_text( 'cat' ) );
+				}
+				if ( 1 === preg_match( '/^\d{6}$/', self::query_text( 'm' ) ) ) {
+					$args['m'] = self::query_text( 'm' );
+				}
+				if ( '' !== self::query_text( 'post_mime_type' ) ) {
+					$args['post_mime_type'] = self::query_text( 'post_mime_type' );
 				}
 				$ids = ( new \WP_Query( $args ) )->posts;
 				remove_filter( 'posts_clauses', $append );
@@ -181,8 +212,10 @@ final class CsvExporter {
 					}
 				};
 				add_action( 'pre_user_query', $apply );
-				$ids = ( new \WP_User_Query(
+				$role = sanitize_key( self::query_text( 'role' ) );
+				$ids  = ( new \WP_User_Query(
 					array(
+						'role'        => get_role( $role ) ? $role : '',
 						'fields'      => 'ID',
 						'number'      => self::BATCH,
 						'offset'      => $offset,
@@ -198,14 +231,19 @@ final class CsvExporter {
 				add_filter( 'comments_clauses', $append );
 				$ids = get_comments(
 					array(
-						'status'       => 'all',
+						'status'       => array(
+							'moderated' => 'hold',
+							'approved'  => 'approve',
+							'spam'      => 'spam',
+							'trash'     => 'trash',
+						)[ self::query_text( 'comment_status' ) ] ?? 'all',
 						'fields'       => 'ids',
 						'number'       => self::BATCH,
 						'offset'       => $offset,
 						'orderby'      => $target ? 'none' : 'comment_date_gmt',
 						'order'        => $order,
 						'search'       => $search,
-						'cache_domain' => 'corinthian-export:' . md5( wp_json_encode( array( $sql, $orderby, $order ) ) . $offset ),
+						'cache_domain' => 'corinthian-export:' . md5( wp_json_encode( array( $sql, $orderby, $order, self::query_text( 'comment_status' ) ) ) . $offset ),
 					)
 				);
 				remove_filter( 'comments_clauses', $append );

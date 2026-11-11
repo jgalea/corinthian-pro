@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\Pods;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * What a Pods field type can do. Every per-feature decision (render, sort,
  * filter, edit) starts from family() so the rules live in one table.
@@ -162,7 +164,7 @@ final class FieldKind {
 			}
 			return $out;
 		}
-		foreach ( preg_split( '/\r\n|\r|\n/', (string) $custom ) ?: array() as $line ) {
+		foreach ( (array) preg_split( '/\r\n|\r|\n/', (string) $custom ) as $line ) {
 			$parts = explode( '|', $line, 2 );
 			$value = trim( $parts[0] );
 			if ( '' !== $value ) {

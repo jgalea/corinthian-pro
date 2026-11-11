@@ -6,6 +6,8 @@ use Corinthian\Columns\Registry;
 use Corinthian\Screens\Screen;
 use Corinthian\Sets\SetRepository;
 
+defined( 'ABSPATH' ) || exit;
+
 final class WooCommerceIntegration {
 
 	public static function register(): void {

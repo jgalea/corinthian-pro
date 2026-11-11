@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\MetaBox;
 
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * The only place that calls Meta Box. Calls go through call_user_func so the
  * plugin analyses cleanly without Meta Box's function stubs.

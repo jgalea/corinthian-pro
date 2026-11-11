@@ -6,6 +6,8 @@ use Corinthian\Screens\Screen;
 use Corinthian\Sets\ColumnSet;
 use CorinthianPro\Ai\AiClient;
 
+defined( 'ABSPATH' ) || exit;
+
 final class AiPayload {
 
 	public function register(): void {
@@ -20,7 +22,7 @@ final class AiPayload {
 		if ( ! is_array( $data ) ) {
 			return $data;
 		}
-		$can_use     = current_user_can( (string) apply_filters( 'corinthian_ai_capability', 'edit_others_posts' ) );
+		$can_use    = current_user_can( (string) apply_filters( 'corinthian_ai_capability', 'edit_others_posts' ) );
 		$data['ai'] = array(
 			'available' => $can_use && ( new AiClient() )->available(),
 			'canUse'    => $can_use,

@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Wpra;
 
 use Corinthian\Columns\Registry;
 
+defined( 'ABSPATH' ) || exit;
+
 final class WpraIntegration {
 
 	public static function register(): void {

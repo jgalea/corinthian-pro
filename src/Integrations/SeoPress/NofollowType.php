@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\SeoPress;
 
 use Corinthian\Columns\Config;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _seopress_robots_follow: 'yes' means nofollow.
  */

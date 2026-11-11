@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\WooCommerce;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 trait SortsBySpec {
 
 	public function sort_clauses( array $clauses, Config $config, string $order, Screen $screen ): array {

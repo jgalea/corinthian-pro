@@ -10,6 +10,8 @@ use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _yoast_wpseo_primary_{taxonomy}: the term id of the primary term. Yoast keeps
  * one per hierarchical taxonomy and mirrors it into wp_yoast_primary_term when a

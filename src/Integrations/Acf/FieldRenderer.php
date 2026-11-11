@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\Acf;
 
+defined( 'ABSPATH' ) || exit;
+
 final class FieldRenderer {
 
 	private const CAP = 5;

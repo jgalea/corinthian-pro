@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\WooCommerce;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Boolean SQL for filter rules, built on a column expression. Every value goes through $wpdb->prepare().
  */

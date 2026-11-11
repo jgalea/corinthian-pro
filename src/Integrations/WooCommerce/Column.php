@@ -6,6 +6,8 @@ use Corinthian\Columns\AbstractType;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * A WooCommerce column driven by a Spec. Sorting, filtering and editing come from
  * the traits the concrete classes use, so a column only advertises what it can do.

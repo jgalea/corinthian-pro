@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\Yoast;
 
+defined( 'ABSPATH' ) || exit;
+
 final class InboundLinksType extends LinkCountType {
 
 	public function key(): string {

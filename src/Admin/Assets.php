@@ -5,6 +5,8 @@ namespace CorinthianPro\Admin;
 use Corinthian\Screens\Screen;
 use Corinthian\Sets\ColumnSet;
 
+defined( 'ABSPATH' ) || exit;
+
 final class Assets {
 
 	public function register(): void {

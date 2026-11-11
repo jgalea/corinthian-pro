@@ -10,6 +10,8 @@ use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * The term id of the primary term. SEOPress keeps one meta key per taxonomy:
  * _seopress_robots_primary_cat for the post type's category taxonomy, and

@@ -6,6 +6,8 @@ use Corinthian\Plugin;
 use Corinthian\Screens\Screen;
 use Corinthian\Sets\ColumnSet;
 
+defined( 'ABSPATH' ) || exit;
+
 final class FilterPayload {
 
 	public function __construct( private Plugin $plugin ) {}

@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\SeoPress;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _seopress_robots_canonical: an absolute URL.
  */

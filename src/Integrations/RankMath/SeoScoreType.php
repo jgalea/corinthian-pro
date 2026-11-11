@@ -8,6 +8,8 @@ use Corinthian\Columns\Sortable;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * rank_math_seo_score: an integer 0-100 that Rank Math's editor writes on save.
  */

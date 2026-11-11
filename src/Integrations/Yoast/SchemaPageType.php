@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Yoast;
 
 use Corinthian\Columns\Config;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _yoast_wpseo_schema_page_type: one of Schema_Types::PAGE_TYPES.
  */

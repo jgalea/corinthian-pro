@@ -36,7 +36,7 @@ class SmokeTest extends WP_UnitTestCase {
 		ob_start();
 		do_action( 'admin_notices' );
 		$html = (string) ob_get_clean();
-		$this->assertStringContainsString( 'requires the free Corinthian plugin', $html );
-		$this->assertStringContainsString( 'needs Corinthian 0.1.0', $html );
+		$this->assertStringContainsString( 'requires the free Corinthian Admin Column Manager plugin', $html );
+		$this->assertStringContainsString( 'needs Corinthian Admin Column Manager 0.1.0', $html );
 	}
 }

@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\MetaBox;
 
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * SQL for sorting and filtering on a Meta Box field's stored value. Values
  * are read from the meta table that matches the screen's object type, keyed
@@ -336,9 +338,9 @@ final class FieldQuery {
 		$valid = static function ( mixed $day ): bool {
 			return is_string( $day ) && 1 === preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $day, $m ) && checkdate( (int) $m[2], (int) $m[3], (int) $m[1] );
 		};
-		$expr = $spec['timestamp'] ? "CAST({$col} AS SIGNED)" : $col;
-		$mark = $spec['timestamp'] ? '%d' : '%s';
-		$ago  = static fn( int $days ): string => wp_date( 'Y-m-d', time() - $days * DAY_IN_SECONDS );
+		$expr  = $spec['timestamp'] ? "CAST({$col} AS SIGNED)" : $col;
+		$mark  = $spec['timestamp'] ? '%d' : '%s';
+		$ago   = static fn( int $days ): string => wp_date( 'Y-m-d', time() - $days * DAY_IN_SECONDS );
 		$guard = "{$col} <> ''";
 
 		switch ( $op ) {

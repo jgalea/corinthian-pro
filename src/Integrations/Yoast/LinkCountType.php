@@ -8,6 +8,8 @@ use Corinthian\Columns\Sortable;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Internal link counts Yoast's link builder keeps on the post's indexable row.
  * Derived data: read-only, and blank for posts Yoast has not indexed.
@@ -68,7 +70,7 @@ abstract class LinkCountType extends YoastType implements Sortable, Filterable {
 
 	public function filter_condition( Config $config, string $op, mixed $value, Screen $screen, string $alias ): ?array {
 		global $wpdb;
-		$table  = YoastIntegration::indexable_table();
+		$table   = YoastIntegration::indexable_table();
 		$column  = $this->expression( $alias );
 		$exists  = "EXISTS (SELECT 1 FROM {$table} AS {$alias} WHERE {$alias}.object_id = {$wpdb->posts}.ID AND {$alias}.object_type = 'post'";
 		$counted = $this->empty_means_zero() ? '' : " AND {$column} IS NOT NULL";

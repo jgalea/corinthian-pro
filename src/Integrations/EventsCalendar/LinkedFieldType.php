@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\EventsCalendar;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * One stored detail of a venue or organizer, shown on that post type's own list.
  */

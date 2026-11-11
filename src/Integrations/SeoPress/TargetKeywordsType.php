@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\SeoPress;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _seopress_analysis_target_kw: target keywords joined with commas. The
  * content analysis security area governs it, not the SEO metabox one.

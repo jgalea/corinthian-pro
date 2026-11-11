@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Acf;
 
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * The only place that calls ACF. Calls go through call_user_func so the
  * plugin analyses cleanly without ACF's function stubs.

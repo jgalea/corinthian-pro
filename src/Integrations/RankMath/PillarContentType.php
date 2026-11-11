@@ -9,6 +9,8 @@ use Corinthian\Columns\Sortable;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * rank_math_pillar_content: the string 'on', or 'off' after Rank Math's own toggle turns it off.
  */

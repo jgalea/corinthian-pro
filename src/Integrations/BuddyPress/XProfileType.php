@@ -10,6 +10,8 @@ use Corinthian\Screens\Screen;
 use DateTimeImmutable;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * One extended profile (xprofile) field, chosen with the field_id setting.
  * Values live in the bp_xprofile_data table, one row per member and field;

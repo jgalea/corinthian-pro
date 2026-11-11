@@ -8,6 +8,8 @@ use Corinthian\Columns\Sortable;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _EventCost, compared the way TEC's own cost filters do: as DECIMAL(10,5).
  * An event with several prices counts by its cheapest one.

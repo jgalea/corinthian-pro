@@ -10,6 +10,8 @@ use Corinthian\Columns\Filterable;
 use Corinthian\Columns\Sortable;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Any Meta Box field on a post, term or user list. Fields stored outside the
  * object's own meta table (a custom table) render and save through Meta Box
@@ -39,7 +41,7 @@ final class MetaBoxFieldType extends AbstractType implements Sortable, Filterabl
 	public function settings_schema( Screen $screen ): array {
 		$options = array();
 		foreach ( MetaBoxApi::fields_for( $screen ) as list( $group, $field ) ) {
-			$label                         = (string) ( $field['name'] ?? '' );
+			$label                            = (string) ( $field['name'] ?? '' );
 			$options[ (string) $field['id'] ] = ( '' !== $group ? $group . ': ' : '' ) . ( '' !== $label ? $label : (string) $field['id'] );
 		}
 		return array(

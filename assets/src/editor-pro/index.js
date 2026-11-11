@@ -17,10 +17,17 @@ function ExportToggle( { draft, patchSettings } ) {
 }
 
 function FormattingPanel( { draft, patchSettings, screen } ) {
-	const typeMap = useMemo( () => Object.fromEntries( screen.types.map( ( t ) => [ t.key, t ] ) ), [ screen ] );
+	const typeMap = useMemo(
+		() => Object.fromEntries( screen.types.map( ( t ) => [ t.key, t ] ) ),
+		[ screen ]
+	);
 	return (
 		<Formatting
-			rules={ Array.isArray( draft.settings.formatting ) ? draft.settings.formatting : [] }
+			rules={
+				Array.isArray( draft.settings.formatting )
+					? draft.settings.formatting
+					: []
+			}
 			columns={ draft.columns }
 			typeMap={ typeMap }
 			onChange={ ( formatting ) => patchSettings( { formatting } ) }
@@ -28,21 +35,65 @@ function FormattingPanel( { draft, patchSettings, screen } ) {
 	);
 }
 
-addFilter( 'corinthian.editor.setPanels', 'corinthian/export', ( panels, ctx ) => [
-	...panels,
-	<ExportToggle key="export" slot="toggles" { ...ctx } />,
-] );
-addFilter( 'corinthian.editor.setPanels', 'corinthian/formatting', ( panels, ctx ) => [
-	...panels,
-	<FormattingPanel key="formatting" { ...ctx } />,
-] );
+addFilter(
+	'corinthian.editor.setPanels',
+	'corinthian/export',
+	( panels, ctx ) => [
+		...panels,
+		<ExportToggle key="export" slot="toggles" { ...ctx } />,
+	]
+);
+addFilter(
+	'corinthian.editor.setPanels',
+	'corinthian/formatting',
+	( panels, ctx ) => [
+		...panels,
+		<FormattingPanel key="formatting" { ...ctx } />,
+	]
+);
 
-addFilter( 'corinthian.editor.columnToggles', 'corinthian/filterable', ( toggles, typeInfo ) =>
-	typeInfo?.filterable ? [ ...toggles, { name: 'filterable', label: __( 'Filterable', 'corinthian-pro' ), def: true } ] : toggles
+addFilter(
+	'corinthian.editor.columnToggles',
+	'corinthian/filterable',
+	( toggles, typeInfo ) =>
+		typeInfo?.filterable
+			? [
+					...toggles,
+					{
+						name: 'filterable',
+						label: __( 'Filterable', 'corinthian-pro' ),
+						def: true,
+					},
+			  ]
+			: toggles
 );
-addFilter( 'corinthian.editor.columnToggles', 'corinthian/editable', ( toggles, typeInfo ) =>
-	typeInfo?.editable ? [ ...toggles, { name: 'editable', label: __( 'Inline editable', 'corinthian-pro' ), def: true } ] : toggles
+addFilter(
+	'corinthian.editor.columnToggles',
+	'corinthian/editable',
+	( toggles, typeInfo ) =>
+		typeInfo?.editable
+			? [
+					...toggles,
+					{
+						name: 'editable',
+						label: __( 'Inline editable', 'corinthian-pro' ),
+						def: true,
+					},
+			  ]
+			: toggles
 );
-addFilter( 'corinthian.editor.columnToggles', 'corinthian/allow-create', ( toggles, typeInfo ) =>
-	typeInfo?.key === 'post.taxonomy' ? [ ...toggles, { name: 'allow_create', label: __( 'Allow creating terms', 'corinthian-pro' ), def: false } ] : toggles
+addFilter(
+	'corinthian.editor.columnToggles',
+	'corinthian/allow-create',
+	( toggles, typeInfo ) =>
+		typeInfo?.key === 'post.taxonomy'
+			? [
+					...toggles,
+					{
+						name: 'allow_create',
+						label: __( 'Allow creating terms', 'corinthian-pro' ),
+						def: false,
+					},
+			  ]
+			: toggles
 );

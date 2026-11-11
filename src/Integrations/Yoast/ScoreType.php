@@ -8,6 +8,8 @@ use Corinthian\Columns\Sortable;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * A 0-100 analysis score Yoast's editor writes on save. A post Yoast never
  * scored (or scored 0, which Yoast does not store) has no row.

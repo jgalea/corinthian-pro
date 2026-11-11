@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Pods;
 
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * SQL for sorting and filtering on a Pods field stored in meta. Values are
  * read from the meta table that matches the screen's object type, keyed by

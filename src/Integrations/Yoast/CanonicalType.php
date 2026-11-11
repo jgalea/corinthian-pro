@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\Yoast;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _yoast_wpseo_canonical: an absolute URL.
  */

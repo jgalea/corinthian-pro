@@ -9,6 +9,8 @@ use Corinthian\Columns\Sortable;
 use CorinthianPro\Integrations\RankMath\MetaText;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * A free-text SEOPress field: contains / is empty filters, alphabetical sort and a text editor.
  */

@@ -11,6 +11,8 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Saved filters ("segments") for a column set. Shared segments live on the set
  * and need the manage capability; personal ones live in the user's meta.
@@ -100,7 +102,10 @@ final class SegmentsController {
 			$data['settings']               = (array) $data['settings'];
 			$data['settings']['segments']   = array_values( (array) ( $set->settings['segments'] ?? array() ) );
 			$data['settings']['segments'][] = $segment;
-			$this->plugin->sets->save( $data, $set->id );
+			$error                          = $this->save_shared( $data, $set );
+			if ( $error ) {
+				return $error;
+			}
 		} else {
 			$key    = self::USER_META_PREFIX . $set->id;
 			$mine   = get_user_meta( get_current_user_id(), $key, true );
@@ -137,7 +142,10 @@ final class SegmentsController {
 		$data                         = $set->to_array();
 		$data['settings']             = (array) $data['settings'];
 		$data['settings']['segments'] = $left;
-		$this->plugin->sets->save( $data, $set->id );
+		$error                        = $this->save_shared( $data, $set );
+		if ( $error ) {
+			return $error;
+		}
 		return new WP_REST_Response( array( 'deleted' => true ) );
 	}
 
@@ -156,9 +164,30 @@ final class SegmentsController {
 
 	private function visible_set( WP_REST_Request $request ): ColumnSet|WP_Error {
 		$set = $this->plugin->sets->find( (int) $request['set'] );
-		if ( ! $set || ! $set->visible_to( wp_get_current_user() ) ) {
+		if ( ! $set || ! self::can_use( $this->plugin, $set ) ) {
 			return new WP_Error( 'corinthian_not_found', __( 'Column set not found.', 'corinthian-pro' ), array( 'status' => 404 ) );
 		}
 		return $set;
+	}
+
+	/**
+	 * A user may use a set's segments only if the set is shown to them and
+	 * they can open the list screen it belongs to.
+	 */
+	public static function can_use( Plugin $plugin, ColumnSet $set ): bool {
+		$screen = $plugin->screens->get( $set->screen );
+		return $set->visible_to( wp_get_current_user() ) && $screen && $screen->user_can_list();
+	}
+
+	/**
+	 * @param array<string,mixed> $data
+	 */
+	private function save_shared( array $data, ColumnSet $set ): WP_Error|null {
+		try {
+			$this->plugin->sets->save( $data, $set->id );
+		} catch ( \DomainException ) {
+			return new WP_Error( 'corinthian_readonly', __( 'This column set is defined in code, so shared segments cannot be saved on it. Save a personal segment instead.', 'corinthian-pro' ), array( 'status' => 403 ) );
+		}
+		return null;
 	}
 }

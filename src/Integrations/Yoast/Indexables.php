@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\Yoast;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Reads of wp_yoast_indexable, the table Yoast derives from post meta and
  * post content. Only the link counts are read from it, since they exist

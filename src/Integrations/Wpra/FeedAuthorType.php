@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\Wpra;
 
+defined( 'ABSPATH' ) || exit;
+
 final class FeedAuthorType extends MetaTextType {
 
 	public function key(): string {

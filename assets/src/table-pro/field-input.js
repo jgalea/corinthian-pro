@@ -1,3 +1,4 @@
+/* global CSS */
 import { __ } from '@wordpress/i18n';
 import {
 	Button,
@@ -12,7 +13,10 @@ export function optionEntries( field ) {
 	if ( ! options || typeof options !== 'object' ) {
 		return [];
 	}
-	return Object.entries( options ).map( ( [ value, label ] ) => ( { value: String( value ), label: String( label ) } ) );
+	return Object.entries( options ).map( ( [ value, label ] ) => ( {
+		value: String( value ),
+		label: String( label ),
+	} ) );
 }
 
 export function emptyValue( field ) {
@@ -37,7 +41,11 @@ function MediaPicker( { value, onChange, label } ) {
 		);
 	}
 	const pick = () => {
-		const frame = window.wp.media( { title: __( 'Choose an image', 'corinthian-pro' ), multiple: false, library: { type: 'image' } } );
+		const frame = window.wp.media( {
+			title: __( 'Choose an image', 'corinthian-pro' ),
+			multiple: false,
+			library: { type: 'image' },
+		} );
 		frame.on( 'select', () => {
 			const picked = frame.state().get( 'selection' ).first();
 			if ( picked ) {
@@ -49,7 +57,9 @@ function MediaPicker( { value, onChange, label } ) {
 	return (
 		<div className="corinthian-field__media">
 			<Button variant="secondary" onClick={ pick }>
-				{ id ? __( 'Change image', 'corinthian-pro' ) : __( 'Choose image', 'corinthian-pro' ) }
+				{ id
+					? __( 'Change image', 'corinthian-pro' )
+					: __( 'Choose image', 'corinthian-pro' ) }
 			</Button>
 			{ id && (
 				<>
@@ -66,9 +76,27 @@ function MediaPicker( { value, onChange, label } ) {
 /**
  * One input for any Editable field. Enter handling lives with the caller,
  * which wraps this in a form.
+ * @param {*} root0
+ * @param {*} root0.field
+ * @param {*} root0.value
+ * @param {*} root0.onChange
+ * @param {*} root0.label
+ * @param {*} root0.autoFocus
+ * @param {*} root0.showLabel
  */
-export function FieldInput( { field, value, onChange, label, autoFocus = false, showLabel = false } ) {
-	const common = { __nextHasNoMarginBottom: true, label, hideLabelFromVision: ! showLabel };
+export function FieldInput( {
+	field,
+	value,
+	onChange,
+	label,
+	autoFocus = false,
+	showLabel = false,
+} ) {
+	const common = {
+		__nextHasNoMarginBottom: true,
+		label,
+		hideLabelFromVision: ! showLabel,
+	};
 	const size = { __next40pxDefaultSize: true };
 	const options = optionEntries( field );
 
@@ -92,7 +120,11 @@ export function FieldInput( { field, value, onChange, label, autoFocus = false, 
 					{ ...common }
 					{ ...size }
 					type={ field.input }
-					placeholder={ field.input === 'number' ? __( 'Enter a number', 'corinthian-pro' ) : undefined }
+					placeholder={
+						field.input === 'number'
+							? __( 'Enter a number', 'corinthian-pro' )
+							: undefined
+					}
 					value={ value ?? '' }
 					onChange={ onChange }
 					// eslint-disable-next-line jsx-a11y/no-autofocus
@@ -100,7 +132,17 @@ export function FieldInput( { field, value, onChange, label, autoFocus = false, 
 				/>
 			);
 		case 'datetime':
-			return <TextControl { ...common } { ...size } type="datetime-local" value={ value ?? '' } onChange={ onChange } autoFocus={ autoFocus } />;
+			return (
+				<TextControl
+					{ ...common }
+					{ ...size }
+					type="datetime-local"
+					value={ value ?? '' }
+					onChange={ onChange }
+					// eslint-disable-next-line jsx-a11y/no-autofocus -- field opens on demand, focus is intended
+					autoFocus={ autoFocus }
+				/>
+			);
 		case 'toggle':
 			return (
 				<ToggleControl
@@ -113,14 +155,27 @@ export function FieldInput( { field, value, onChange, label, autoFocus = false, 
 		case 'select':
 		case 'user':
 			if ( field.input === 'user' && ! options.length ) {
-				return <TextControl { ...common } { ...size } type="number" min="0" placeholder={ __( 'User ID', 'corinthian-pro' ) } value={ value ?? '' } onChange={ onChange } />;
+				return (
+					<TextControl
+						{ ...common }
+						{ ...size }
+						type="number"
+						min="0"
+						placeholder={ __( 'User ID', 'corinthian-pro' ) }
+						value={ value ?? '' }
+						onChange={ onChange }
+					/>
+				);
 			}
 			return (
 				<SelectControl
 					{ ...common }
 					{ ...size }
 					value={ value ?? '' }
-					options={ [ { value: '', label: __( 'None', 'corinthian-pro' ) }, ...options ] }
+					options={ [
+						{ value: '', label: __( 'None', 'corinthian-pro' ) },
+						...options,
+					] }
 					onChange={ onChange }
 				/>
 			);
@@ -135,7 +190,13 @@ export function FieldInput( { field, value, onChange, label, autoFocus = false, 
 				/>
 			);
 		case 'media':
-			return <MediaPicker value={ value } onChange={ onChange } label={ label } />;
+			return (
+				<MediaPicker
+					value={ value }
+					onChange={ onChange }
+					label={ label }
+				/>
+			);
 		default:
 			return (
 				<TextControl
@@ -152,14 +213,20 @@ export function FieldInput( { field, value, onChange, label, autoFocus = false, 
 	}
 }
 
-/** Read the label a column shows in the table header. */
+/**
+ * Read the label a column shows in the table header.
+ * @param {*} tableKey
+ * @param {*} fallback
+ */
 export function columnLabel( tableKey, fallback = '' ) {
 	const th = document.querySelector( `thead th#${ CSS.escape( tableKey ) }` );
 	if ( ! th ) {
 		return fallback;
 	}
 	const copy = th.cloneNode( true );
-	copy.querySelectorAll( '.corinthian-resize, .sorting-indicators, .screen-reader-text' ).forEach( ( n ) => n.remove() );
+	copy.querySelectorAll(
+		'.corinthian-resize, .sorting-indicators, .screen-reader-text'
+	).forEach( ( n ) => n.remove() );
 	return copy.textContent.trim() || fallback;
 }
 

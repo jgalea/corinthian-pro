@@ -6,6 +6,8 @@ use Corinthian\Columns\Config;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * When WPRA imported the item. It writes an ISO 8601 string (2031-03-10T09:00:00+00:00)
  * from PHP's clock, which WordPress keeps on UTC, so the first 19 characters sort and

@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\Yoast;
 use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _yoast_wpseo_metadesc: the description template as typed, with %%variables%% unexpanded.
  */

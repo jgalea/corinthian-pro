@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Yoast;
 
 use Corinthian\Columns\Config;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * _yoast_wpseo_schema_article_type: one of Schema_Types::ARTICLE_TYPES, which
  * Yoast narrows with the wpseo_schema_article_types filter. Only content types

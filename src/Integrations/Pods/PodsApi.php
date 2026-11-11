@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Pods;
 
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * The only place that calls Pods. Calls go through call_user_func so the
  * plugin analyses cleanly without Pods' function stubs.

@@ -12,6 +12,8 @@ use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Conditional formatting: which rows on the current page match each rule.
  *
@@ -65,7 +67,7 @@ final class FormattingController {
 					),
 				)
 			);
-			$out[] = array(
+			$out[]  = array(
 				'rule' => $rule,
 				'ids'  => Matcher::ids( $screen, $set, $filter, $ids, self::MAX_IDS ),
 			);

@@ -10,14 +10,16 @@ use CorinthianPro\Rest\EditController;
 use WP_Error;
 use WP_REST_Request;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Column sets, smart filters, segments and bulk edits as WordPress abilities,
  * so AI agents and other tools can use them with the user's own permissions.
  */
 final class Abilities {
 
-	public const CATEGORY  = 'corinthian';
-	public const MAX_FIND  = 500;
+	public const CATEGORY = 'corinthian';
+	public const MAX_FIND = 500;
 
 	public static function register(): void {
 		if ( ! function_exists( 'wp_register_ability' ) ) {
@@ -69,6 +71,7 @@ final class Abilities {
 				'input_schema'        => array(
 					'type'       => 'object',
 					'properties' => array( 'screen' => array( 'type' => 'string' ) ),
+					'default'    => array(),
 				),
 				'output_schema'       => array( 'type' => 'array' ),
 				'execute_callback'    => array( self::class, 'list_sets' ),
@@ -198,7 +201,7 @@ final class Abilities {
 				}
 				$columns = array();
 				foreach ( $set->columns as $config ) {
-					$type    = $plugin->registry->get( $config->type );
+					$type      = $plugin->registry->get( $config->type );
 					$columns[] = array(
 						'id'        => $config->id,
 						'label'     => '' !== $config->label ? $config->label : ( $screen->native_columns()[ (string) $config->setting( 'key' ) ] ?? $config->id ),
@@ -247,8 +250,9 @@ final class Abilities {
 	 * @return list<array<string,mixed>>|WP_Error
 	 */
 	public static function list_segments( $input = array() ): array|WP_Error {
-		$set = Plugin::instance()->sets->find( (int) ( $input['set'] ?? 0 ) );
-		if ( ! $set || ! $set->visible_to( wp_get_current_user() ) ) {
+		$plugin = Plugin::instance();
+		$set    = $plugin->sets->find( (int) ( $input['set'] ?? 0 ) );
+		if ( ! $set || ! SegmentsController::can_use( $plugin, $set ) ) {
 			return new WP_Error( 'corinthian_not_found', __( 'Column set not found.', 'corinthian-pro' ), array( 'status' => 404 ) );
 		}
 		return SegmentsController::for_user( $set, get_current_user_id() );

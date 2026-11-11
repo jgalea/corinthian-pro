@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\BuddyPress;
 
 use Corinthian\Columns\Registry;
 
+defined( 'ABSPATH' ) || exit;
+
 final class BuddyPressIntegration {
 
 	public static function register(): void {

@@ -2,6 +2,8 @@
 
 namespace CorinthianPro\Integrations\MetaBox;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Editor shape, current value and validation for the editable Meta Box kinds.
  */

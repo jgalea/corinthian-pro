@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\Yoast;
 
 use Corinthian\Columns\Registry;
 
+defined( 'ABSPATH' ) || exit;
+
 final class YoastIntegration {
 
 	public const META_PREFIX = '_yoast_wpseo_';

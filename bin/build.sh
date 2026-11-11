@@ -12,7 +12,7 @@ composer install --no-dev --optimize-autoloader --no-interaction --quiet
 ( cd "$src" && npm run build --silent >/dev/null )
 mkdir -p assets && cp -R "$src/assets/build" assets/build
 mkdir "$out/.dev-files"
-for entry in tests bin .wp-env.json phpunit.xml.dist phpunit-multisite.xml.dist phpstan.neon.dist package.json package-lock.json composer.lock assets/src; do
+for entry in tests bin .wp-env.json phpunit.xml.dist phpunit-multisite.xml.dist phpstan.neon.dist phpcs.xml.dist package.json package-lock.json composer.lock assets/src; do
 	[ -e "$entry" ] && mv "$entry" "$out/.dev-files/$(echo "$entry" | tr / _)"
 done
 ( cd "$out" && zip -qr corinthian-pro.zip corinthian-pro )

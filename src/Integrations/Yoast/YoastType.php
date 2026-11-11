@@ -7,6 +7,8 @@ use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * Post meta written by Yoast SEO. The post meta rows (_yoast_wpseo_*) are what
  * Yoast's editor writes and what its own list filters query; the

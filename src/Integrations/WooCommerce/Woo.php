@@ -4,6 +4,8 @@ namespace CorinthianPro\Integrations\WooCommerce;
 
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * The only place that calls WooCommerce. Calls go through call_user_func so the
  * plugin analyses cleanly without WooCommerce's stubs; objects come back as mixed.

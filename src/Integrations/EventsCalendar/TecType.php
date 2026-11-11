@@ -7,6 +7,8 @@ use Corinthian\Columns\Config;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 abstract class TecType extends AbstractType {
 
 	public function group(): string {

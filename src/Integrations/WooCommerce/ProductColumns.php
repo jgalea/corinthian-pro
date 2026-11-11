@@ -5,6 +5,8 @@ namespace CorinthianPro\Integrations\WooCommerce;
 use Corinthian\Screens\Screen;
 use WP_Error;
 
+defined( 'ABSPATH' ) || exit;
+
 final class ProductColumns {
 
 	/**

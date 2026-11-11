@@ -9,6 +9,8 @@ use Corinthian\Columns\Types\PostEditor;
 use Corinthian\Columns\Types\PostFilter;
 use Corinthian\Screens\Screen;
 
+defined( 'ABSPATH' ) || exit;
+
 /**
  * rank_math_primary_{taxonomy}: the term id of the primary term. Rank Math
  * keeps one per hierarchical taxonomy; the column defaults to categories.
