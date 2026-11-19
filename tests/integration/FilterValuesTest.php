@@ -317,6 +317,31 @@ final class FilterValuesTest extends WP_UnitTestCase {
 		$this->assertSame( array( (string) $subscriber->ID => 'Bulk Person 0001' ), $type->filter_labels( $config, $screen, array( (string) $subscriber->ID ) ) );
 	}
 
+	public function test_categories_that_share_a_name_are_labelled_with_their_parents(): void {
+		$news   = self::factory()->category->create( array( 'name' => 'News' ) );
+		$sports = self::factory()->category->create( array( 'name' => 'Sports' ) );
+		$a      = self::factory()->category->create(
+			array(
+				'name'   => 'Local',
+				'parent' => $news,
+			)
+		);
+		$b      = self::factory()->category->create(
+			array(
+				'name'   => 'Local',
+				'parent' => $sports,
+			)
+		);
+		$config = new \Corinthian\Columns\Config( 'cats', 'post.taxonomy', 'Categories', null, 'px', array( 'taxonomy' => 'category' ) );
+		$screen = Plugin::instance()->screens->get( 'post:post' );
+		$type   = Plugin::instance()->registry->get( 'post.taxonomy' );
+
+		$found = $type->filter_options( $config, $screen, 'Local', 1, 20 )['options'];
+		$this->assertSame( 'News › Local', $found[ (string) $a ] );
+		$this->assertSame( 'Sports › Local', $found[ (string) $b ] );
+		$this->assertSame( array( (string) $news => 'News' ), $type->filter_labels( $config, $screen, array( (string) $news ) ) );
+	}
+
 	public function test_the_table_payload_carries_labels_for_the_current_filter(): void {
 		$set     = Plugin::instance()->sets->find( self::$set_id );
 		$screen  = Plugin::instance()->screens->get( 'post:post' );
