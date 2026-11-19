@@ -1,6 +1,13 @@
 import apiFetch from '@wordpress/api-fetch';
+import { speak } from '@wordpress/a11y';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { createRoot, useState, useRef, useEffect } from '@wordpress/element';
+import {
+	createPortal,
+	createRoot,
+	useState,
+	useRef,
+	useEffect,
+} from '@wordpress/element';
 import {
 	Button,
 	Notice,
@@ -117,6 +124,44 @@ function cleanFilter( draft, columns ) {
 	return { match: draft.match, rules };
 }
 
+function ruleProblem( rule, columns ) {
+	const operator = findOp( findColumn( columns, rule.column ), rule.op );
+	if ( ! operator ) {
+		return __( 'Choose a column and a comparison.', 'corinthian-pro' );
+	}
+	if ( operator.input === 'none' ) {
+		return '';
+	}
+	if ( operator.op === 'between' ) {
+		const pair = arr( rule.value ).slice( 0, 2 );
+		const missing =
+			pair.length < 2 || pair.some( ( v ) => v === '' || v === null );
+		return missing ? __( 'Enter both values.', 'corinthian-pro' ) : '';
+	}
+	if ( isMulti( operator.op ) ) {
+		return arr( rule.value ).length
+			? ''
+			: __( 'Choose at least one value.', 'corinthian-pro' );
+	}
+	if (
+		rule.value !== '' &&
+		rule.value !== null &&
+		rule.value !== undefined
+	) {
+		return '';
+	}
+	if ( operator.input === 'select' ) {
+		return __( 'Choose a value.', 'corinthian-pro' );
+	}
+	if ( operator.input === 'date' ) {
+		return __( 'Choose a date.', 'corinthian-pro' );
+	}
+	if ( operator.input === 'number' ) {
+		return __( 'Enter a number.', 'corinthian-pro' );
+	}
+	return __( 'Enter a value.', 'corinthian-pro' );
+}
+
 const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 function formatDay( value ) {
@@ -207,6 +252,8 @@ function describeRule( rule, columns ) {
 	return `${ column.label } ${ describeValue( rule, operator ) }`;
 }
 
+const ANNOUNCE_KEY = 'corinthian-filter-announce';
+
 function navigate( filter ) {
 	const url = new URL( window.location.href );
 	url.searchParams.delete( 'paged' );
@@ -216,6 +263,11 @@ function navigate( filter ) {
 		url.searchParams.delete( filterConfig.param );
 	}
 	holdDefault( url, ! filter );
+	try {
+		window.sessionStorage.setItem( ANNOUNCE_KEY, '1' );
+	} catch ( e ) {
+		// Announcements are a bonus when storage is blocked.
+	}
 	window.location.assign( url.toString() );
 }
 
@@ -315,12 +367,12 @@ function ValueInput( { rule, operator, onChange, label } ) {
 	);
 }
 
-function RuleRow( { rule, columns, onChange, onRemove, index } ) {
+function RuleRow( { rule, columns, onChange, onRemove, index, error } ) {
 	const column = findColumn( columns, rule.column );
 	const operator = findOp( column, rule.op );
 	const n = index + 1;
 	return (
-		<li className="corinthian-filter__rule">
+		<li className="corinthian-filter__rule" data-rule-key={ rule.key }>
 			<SelectControl
 				__nextHasNoMarginBottom
 				__next40pxDefaultSize
@@ -403,6 +455,9 @@ function RuleRow( { rule, columns, onChange, onRemove, index } ) {
 				) }
 				onClick={ onRemove }
 			/>
+			{ error && (
+				<p className="corinthian-filter__rule-error">{ error }</p>
+			) }
 		</li>
 	);
 }
@@ -536,31 +591,235 @@ function DescribeFilter( { columns, onLoad } ) {
 	);
 }
 
+function DroppedNotice( { dropped, columns } ) {
+	const [ shown, setShown ] = useState( true );
+	if ( ! shown || ! dropped.length ) {
+		return null;
+	}
+	const unreadable = dropped.some( ( d ) => d?.reason === 'unreadable' );
+	const items = dropped.filter( ( d ) => d?.reason !== 'unreadable' );
+	return (
+		<Notice
+			className="corinthian-filter__notice"
+			status="warning"
+			onRemove={ () => setShown( false ) }
+		>
+			{ unreadable
+				? __(
+						"This filter link couldn't be read, so it was ignored.",
+						'corinthian-pro'
+				  )
+				: __(
+						'Some rules in this link were left out:',
+						'corinthian-pro'
+				  ) }
+			{ items.length > 0 && (
+				<ul className="corinthian-filter__dropped">
+					{ items.map( ( d, i ) => (
+						<li key={ i }>{ describeDropped( d, columns ) }</li>
+					) ) }
+				</ul>
+			) }
+		</Notice>
+	);
+}
+
+function EmptyState() {
+	return (
+		<div className="corinthian-filter-empty">
+			<p className="corinthian-filter-empty__title">
+				{ __( 'Nothing matches these filters.', 'corinthian-pro' ) }
+			</p>
+			<p className="corinthian-filter-empty__hint">
+				{ __(
+					'Remove a rule or change a value to see more rows.',
+					'corinthian-pro'
+				) }
+			</p>
+			<Button variant="secondary" onClick={ () => navigate( null ) }>
+				{ __( 'Clear filters', 'corinthian-pro' ) }
+			</Button>
+		</div>
+	);
+}
+
+function countRows() {
+	const rows = document.querySelectorAll(
+		'table.wp-list-table #the-list > tr:not(.no-items)'
+	);
+	const total = document.querySelector( '.tablenav .displaying-num' );
+	const fromTotal = Number(
+		( total?.textContent.match( /\d[\d,.]*/ ) || [ '' ] )[ 0 ].replace(
+			/[,.]/g,
+			''
+		)
+	);
+	return fromTotal || rows.length;
+}
+
+function announceResult( filtered ) {
+	let flagged = false;
+	try {
+		flagged = window.sessionStorage.getItem( ANNOUNCE_KEY ) === '1';
+		window.sessionStorage.removeItem( ANNOUNCE_KEY );
+	} catch ( e ) {
+		return;
+	}
+	if ( ! flagged ) {
+		return;
+	}
+	const n = countRows();
+	if ( ! filtered ) {
+		speak(
+			sprintf(
+				/* translators: %d: number of rows */ _n(
+					'Filters cleared. %d item.',
+					'Filters cleared. %d items.',
+					n,
+					'corinthian-pro'
+				),
+				n
+			)
+		);
+		return;
+	}
+	speak(
+		n
+			? sprintf(
+					/* translators: %d: number of rows */ _n(
+						'%d item matches the filters.',
+						'%d items match the filters.',
+						n,
+						'corinthian-pro'
+					),
+					n
+			  )
+			: __( 'No items match the filters.', 'corinthian-pro' )
+	);
+}
+
+function firstControl( root ) {
+	return (
+		root?.querySelector(
+			'.corinthian-filter__rule :is(select, input, button):not([disabled])'
+		) ||
+		root?.querySelector( '.corinthian-filter__actions button' ) ||
+		null
+	);
+}
+
 function App() {
 	const { columns, current } = filterConfig;
 	const segments = useSegments();
 	const [ open, setOpen ] = useState( false );
 	const [ draft, setDraft ] = useState( () => toDraft( current, columns ) );
+	const [ errors, setErrors ] = useState( {} );
+	const [ focusKey, setFocusKey ] = useState( null );
 	const toggleRef = useRef();
+	const panelRef = useRef();
 
 	const active = arr( current?.rules ).filter( ( r ) =>
 		findOp( findColumn( columns, r.column ), r.op )
 	);
 	const count = active.length;
 
+	const [ emptyCell ] = useState( () => {
+		const cell = document.querySelector(
+			'table.wp-list-table tr.no-items td'
+		);
+		if ( ! cell || ! count ) {
+			return null;
+		}
+		cell.replaceChildren();
+		return cell;
+	} );
+
+	useEffect( () => {
+		announceResult( count > 0 );
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- once per page load
+	}, [] );
+
 	useEffect( () => {
 		if ( open ) {
-			setDraft( toDraft( current, columns ) );
+			firstControl( panelRef.current )?.focus();
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
 	}, [ open ] );
 
-	const updateRule = ( key, next ) =>
+	useEffect( () => {
+		if ( focusKey === null ) {
+			return;
+		}
+		const row = panelRef.current?.querySelector(
+			`[data-rule-key="${ focusKey }"]`
+		);
+		const target =
+			row?.querySelector(
+				'.corinthian-filter__value :is(select, input, button):not([disabled])'
+			) || row?.querySelector( ':is(select, input, button)' );
+		target?.focus();
+		setFocusKey( null );
+	}, [ focusKey ] );
+
+	const togglePanel = () => {
+		if ( ! open ) {
+			setDraft( toDraft( current, columns ) );
+			setErrors( {} );
+		}
+		setOpen( ! open );
+	};
+
+	const closePanel = () => {
+		setOpen( false );
+		toggleRef.current?.focus();
+	};
+
+	const clearError = ( key ) =>
+		setErrors( ( e ) => {
+			if ( ! ( key in e ) ) {
+				return e;
+			}
+			const { [ key ]: _gone, ...rest } = e;
+			return rest;
+		} );
+
+	const apply = () => {
+		const found = {};
+		draft.rules.forEach( ( rule ) => {
+			const problem = ruleProblem( rule, columns );
+			if ( problem ) {
+				found[ rule.key ] = problem;
+			}
+		} );
+		const keys = Object.keys( found );
+		if ( ! keys.length ) {
+			navigate( cleanFilter( draft, columns ) );
+			return;
+		}
+		setErrors( found );
+		setFocusKey( Number( keys[ 0 ] ) );
+		speak(
+			sprintf(
+				/* translators: %d: number of incomplete rules */ _n(
+					'%d rule needs a value before the filter can apply.',
+					'%d rules need a value before the filter can apply.',
+					keys.length,
+					'corinthian-pro'
+				),
+				keys.length
+			),
+			'assertive'
+		);
+	};
+
+	const updateRule = ( key, next ) => {
+		clearError( key );
 		setDraft( ( d ) => ( {
 			...d,
 			rules: d.rules.map( ( r ) => ( r.key === key ? next : r ) ),
 		} ) );
-	const removeRule = ( key ) =>
+	};
+	const removeRule = ( key ) => {
+		clearError( key );
 		setDraft( ( d ) => {
 			const rules = d.rules.filter( ( r ) => r.key !== key );
 			return {
@@ -568,6 +827,7 @@ function App() {
 				rules: rules.length ? rules : [ blankRule( columns ) ],
 			};
 		} );
+	};
 
 	const removeChip = ( index ) => {
 		const rules = active.filter( ( _, i ) => i !== index );
@@ -575,7 +835,20 @@ function App() {
 	};
 
 	return (
-		<div className="corinthian-filter">
+		// eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Escape closes the panel from anywhere in the bar
+		<div
+			className="corinthian-filter"
+			onKeyDown={ ( e ) => {
+				if (
+					e.key === 'Escape' &&
+					open &&
+					! e.defaultPrevented &&
+					! e.target.closest?.( '.components-popover' )
+				) {
+					closePanel();
+				}
+			} }
+		>
 			<div className="corinthian-filter__bar">
 				<Button
 					ref={ toggleRef }
@@ -584,7 +857,16 @@ function App() {
 					icon="filter"
 					aria-expanded={ open }
 					aria-controls="corinthian-filter-panel"
-					onClick={ () => setOpen( ! open ) }
+					onClick={ togglePanel }
+					onKeyDown={ ( e ) => {
+						if ( open && e.key === 'Tab' && ! e.shiftKey ) {
+							const target = firstControl( panelRef.current );
+							if ( target ) {
+								e.preventDefault();
+								target.focus();
+							}
+						}
+					} }
 				>
 					{ __( 'Filter', 'corinthian-pro' ) }
 					{ count > 0 && (
@@ -638,19 +920,18 @@ function App() {
 				) }
 			</div>
 
+			<DroppedNotice
+				dropped={ arr( filterConfig.dropped ) }
+				columns={ columns }
+			/>
+
 			{ open && (
-				// eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- form-level Escape handler
 				<div
+					ref={ panelRef }
 					id="corinthian-filter-panel"
 					className="corinthian-filter__panel"
 					role="group"
 					aria-label={ __( 'Filter rules', 'corinthian-pro' ) }
-					onKeyDown={ ( e ) => {
-						if ( e.key === 'Escape' ) {
-							setOpen( false );
-							toggleRef.current?.focus();
-						}
-					} }
 				>
 					{ aiEnabled() && (
 						<DescribeFilter
@@ -698,6 +979,7 @@ function App() {
 								index={ i }
 								rule={ rule }
 								columns={ columns }
+								error={ errors[ rule.key ] }
 								onChange={ ( next ) =>
 									updateRule( rule.key, next )
 								}
@@ -732,12 +1014,7 @@ function App() {
 								{ __( 'Clear', 'corinthian-pro' ) }
 							</Button>
 						) }
-						<Button
-							variant="primary"
-							onClick={ () =>
-								navigate( cleanFilter( draft, columns ) )
-							}
-						>
+						<Button variant="primary" onClick={ apply }>
 							{ __( 'Apply', 'corinthian-pro' ) }
 						</Button>
 					</div>
@@ -748,6 +1025,7 @@ function App() {
 					/>
 				</div>
 			) }
+			{ emptyCell && createPortal( <EmptyState />, emptyCell ) }
 		</div>
 	);
 }

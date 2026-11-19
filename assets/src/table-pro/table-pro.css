@@ -985,3 +985,58 @@
 	padding-inline-start: 1.25em;
 	list-style: disc;
 }
+
+/* Core's own filter row gives way to the filter bar. */
+.corinthian-has-filter #post-query-submit,
+.corinthian-has-filter #filter-by-comment-type {
+	display: none;
+}
+
+.corinthian-filter__notice.components-notice {
+	margin: 8px 0 0;
+}
+
+.corinthian-filter__rule-error {
+	flex-basis: 100%;
+	margin: 0;
+	color: #8a2424;
+	font-weight: 600;
+}
+
+.corinthian-filter__rule-error::before {
+	content: "\26A0\00a0";
+}
+
+/* The table can be wider than the screen; keep the message in view. */
+.corinthian-scroll {
+	container-type: inline-size;
+}
+
+.corinthian-filter-empty {
+	position: sticky;
+	inset-inline-start: 0;
+	inline-size: 100cqw;
+	max-inline-size: 100%;
+	box-sizing: border-box;
+	padding-inline: 12px;
+	display: grid;
+	justify-items: center;
+	gap: 8px;
+	padding-block: 32px;
+	text-align: center;
+}
+
+.corinthian-filter-empty p {
+	margin: 0;
+	padding: 0;
+}
+
+.corinthian-filter-empty__title {
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.corinthian-filter-empty__hint {
+	color: #50575e;
+	margin-block-end: 8px;
+}
