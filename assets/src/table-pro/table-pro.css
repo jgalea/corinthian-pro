@@ -522,11 +522,9 @@ body.corinthian-has-filters:not(.corinthian-toolbar-ready) table.wp-list-table {
 
 .corinthian-segments__group h3 {
 	margin: 6px 8px 2px;
-	color: oklch(0.45 0 none);
-	font-size: 11px;
+	color: oklch(0.4 0 none);
+	font-size: 12px;
 	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
 }
 
 .corinthian-segments__group ul {
