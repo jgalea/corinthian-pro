@@ -713,8 +713,13 @@ body.corinthian-has-filters:not(.corinthian-toolbar-ready) table.wp-list-table {
 	display: contents;
 }
 
-/* The chips and panel take their own rows so the buttons in the first row stay put. */
+/* The chips, notice and panel take their own rows so the buttons in the first row stay put. */
 .corinthian-toolbar .corinthian-filter__chiprow {
+	order: 1;
+	flex: 1 0 100%;
+}
+
+.corinthian-toolbar .corinthian-filter__notice {
 	order: 1;
 	flex: 1 0 100%;
 }

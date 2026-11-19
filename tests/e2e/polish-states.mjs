@@ -164,10 +164,14 @@ for ( const width of [ 1440, 768, 390, 320 ] ) {
 	await p.goto( filterUrl( { rules: [ contains ] } ) );
 	await toggle().waitFor();
 	const plain = await toggle().boundingBox();
+	const bulkEdit = () => p.getByRole( 'button', { name: 'Bulk edit' } ).first();
+	const plainBulk = await bulkEdit().boundingBox();
 	await p.goto( filterUrl( { rules: [ { column: 'nope', op: 'eq', value: 'x' }, contains ] } ) );
 	await toggle().waitFor();
 	const withNotice = await toggle().boundingBox();
 	check( withNotice.y === plain.y && withNotice.x === plain.x, `${ width }: the notice doesn't move the toggle` );
+	const bulkWithNotice = await bulkEdit().boundingBox();
+	check( !! plainBulk && !! bulkWithNotice && bulkWithNotice.x === plainBulk.x && bulkWithNotice.y === plainBulk.y, `${ width }: the notice doesn't move Bulk edit` );
 	check( ! ( await overflows() ), `${ width }: no horizontal scroll with the notice` );
 	await p.goto( filterUrl( { rules: [ { column: 'nope', op: 'eq', value: 'x' }, { column: 'slug', op: 'eq', value: 'no-such-slug-anywhere' } ] } ) );
 	await toggle().waitFor();
