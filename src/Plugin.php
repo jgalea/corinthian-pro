@@ -36,6 +36,7 @@ final class Plugin {
 			'corinthian_set_deleted',
 			static function ( $id ) {
 				delete_metadata( 'user', 0, Rest\SegmentsController::USER_META_PREFIX . (int) $id, '', true );
+				delete_metadata( 'user', 0, Rest\SegmentsController::DEFAULT_META_PREFIX . (int) $id, '', true );
 			}
 		);
 		add_action( 'rest_api_init', array( new Ai\AiController( $plugin ), 'register' ) );
@@ -51,6 +52,7 @@ final class Plugin {
 			( new Admin\AiPayload() )->register();
 			( new Admin\EditPayload( $plugin ) )->register();
 			( new Admin\FilterPayload( $plugin ) )->register();
+			( new Admin\DefaultSegment( $plugin ) )->register();
 			( new Export\ExportButtonListener() )->register();
 			( new Export\CsvExporter( $plugin ) )->register();
 		}

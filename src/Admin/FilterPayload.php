@@ -5,6 +5,8 @@ namespace CorinthianPro\Admin;
 use Corinthian\Plugin;
 use Corinthian\Screens\Screen;
 use Corinthian\Sets\ColumnSet;
+use CorinthianPro\Filters\ViewState;
+use CorinthianPro\Rest\SegmentsController;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -26,11 +28,17 @@ final class FilterPayload {
 		}
 		$data['hasFormatting'] = (bool) \CorinthianPro\Rest\FormattingController::rules( $set );
 		$data['filter']        = array(
-			'param'    => \CorinthianPro\Filters\FilterSet::QUERY_VAR,
-			'current'  => \CorinthianPro\Filters\FilterSet::from_request()->to_array(),
-			'columns'  => $this->filterable_columns( $screen, $set ),
-			'segments' => \CorinthianPro\Rest\SegmentsController::for_user( $set, get_current_user_id() ),
-			'canShare' => current_user_can( Plugin::capability() ),
+			'param'         => \CorinthianPro\Filters\FilterSet::QUERY_VAR,
+			'current'       => \CorinthianPro\Filters\FilterSet::from_request()->to_array(),
+			'view'          => ViewState::from_request( $screen ),
+			'statusParam'   => ViewState::status_param( $screen ),
+			'segmentParam'  => ViewState::SEGMENT_VAR,
+			'noSegment'     => ViewState::NO_SEGMENT,
+			'activeSegment' => ViewState::active_segment(),
+			'columns'       => $this->filterable_columns( $screen, $set ),
+			'segments'      => SegmentsController::for_user( $set, get_current_user_id() ),
+			'defaults'      => SegmentsController::defaults( $set, get_current_user_id() ),
+			'canShare'      => current_user_can( Plugin::capability() ),
 		);
 		return $data;
 	}
