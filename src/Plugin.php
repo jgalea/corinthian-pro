@@ -43,6 +43,7 @@ final class Plugin {
 		add_action( 'rest_api_init', array( new Rest\EditController( $plugin ), 'register' ) );
 		add_action( 'rest_api_init', array( new Rest\BulkDeleteController( $plugin ), 'register' ) );
 		add_action( 'rest_api_init', array( new Rest\SegmentsController( $plugin ), 'register' ) );
+		add_action( 'rest_api_init', array( new Rest\FilterValuesController( $plugin ), 'register' ) );
 		add_action( 'rest_api_init', array( new Rest\FormattingController( $plugin ), 'register' ) );
 		( new Filters\QuerySqlListener() )->register();
 		( new Rest\TypeDescriptionListener() )->register();
@@ -51,6 +52,7 @@ final class Plugin {
 			( new Admin\AiPayload() )->register();
 			( new Admin\EditPayload( $plugin ) )->register();
 			( new Admin\FilterPayload( $plugin ) )->register();
+			( new Admin\FilterLabels( $plugin ) )->register();
 			( new Export\ExportButtonListener() )->register();
 			( new Export\CsvExporter( $plugin ) )->register();
 		}

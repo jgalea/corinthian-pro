@@ -129,12 +129,211 @@
 	gap: 6px;
 }
 
-.corinthian-filter__multi {
-	display: grid;
-	gap: 6px;
+/* Filter value picker: a combobox with tokens and a listbox popup. */
+.corinthian-picker {
+	--picker-accent: var(--wp-admin-theme-color, #2271b1);
+	position: relative;
+	min-inline-size: 0;
+	/* Tokens wrap inside the field instead of widening the panel. */
+	contain: inline-size;
+}
+
+.corinthian-picker__field {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px;
+	min-block-size: 40px;
+	padding-block: 4px;
+	padding-inline: 8px;
+	border: 1px solid #949494;
+	border-radius: 2px;
+	background: #fff;
+	box-sizing: border-box;
+	cursor: text;
+}
+
+.corinthian-picker__field:focus-within {
+	border-color: var(--picker-accent);
+	box-shadow: 0 0 0 1px var(--picker-accent);
+}
+
+.corinthian-picker__tokens {
+	display: contents;
+}
+
+.corinthian-picker__token {
+	display: inline-flex;
+	align-items: center;
+	max-inline-size: 100%;
+	min-inline-size: 0;
+	margin: 0;
+	padding-inline-start: 8px;
+	border-radius: 2px;
+	background: color-mix(in oklch, var(--picker-accent) 12%, #fff);
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+.corinthian-picker__token-text {
+	min-inline-size: 0;
+	white-space: nowrap;
+	overflow: clip;
+	text-overflow: ellipsis;
+}
+
+.corinthian-picker__remove {
+	display: inline-flex;
+	flex: none;
+	align-items: center;
+	justify-content: center;
+	inline-size: 24px;
+	block-size: 24px;
 	margin: 0;
 	padding: 0;
 	border: 0;
+	border-radius: 2px;
+	background: transparent;
+	color: inherit;
+	cursor: pointer;
+}
+
+.corinthian-picker__remove:focus-visible {
+	outline: 2px solid var(--picker-accent);
+	outline-offset: -2px;
+}
+
+.corinthian-picker__remove:active {
+	background: color-mix(in oklch, var(--picker-accent) 30%, #fff);
+}
+
+@media (hover: hover) and (pointer: fine) {
+	.corinthian-picker__remove:hover {
+		background: color-mix(in oklch, var(--picker-accent) 22%, #fff);
+	}
+}
+
+.corinthian-picker .corinthian-picker__input,
+.corinthian-picker .corinthian-picker__input:focus {
+	flex: 1 1 8ch;
+	min-inline-size: 8ch;
+	min-block-size: 30px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	outline: 2px solid transparent;
+	font-size: 13px;
+}
+
+.corinthian-picker:not(.corinthian-picker--multiple) .corinthian-picker__field {
+	padding-block: 0;
+}
+
+.corinthian-picker:not(.corinthian-picker--multiple) .corinthian-picker__input {
+	min-block-size: 38px;
+}
+
+.corinthian-picker__chevron {
+	flex: none;
+	margin-inline-start: auto;
+	fill: currentcolor;
+	pointer-events: none;
+}
+
+.corinthian-picker__popup {
+	position: absolute;
+	inset-inline: 0;
+	inset-block-start: calc(100% + 4px);
+	z-index: 100;
+	border: 1px solid #949494;
+	border-radius: 2px;
+	background: #fff;
+	box-shadow: 0 4px 12px oklch(0 0 none / 0.12);
+}
+
+.corinthian-picker__popup[hidden] {
+	display: none;
+}
+
+.corinthian-picker__list {
+	max-block-size: min(18rem, 50vh);
+	margin: 0;
+	padding: 4px;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+	list-style: none;
+}
+
+.corinthian-picker__list:empty {
+	display: none;
+}
+
+.corinthian-picker__list[aria-busy="true"] {
+	opacity: 0.6;
+}
+
+.corinthian-picker__option {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	min-block-size: 36px;
+	margin: 0;
+	padding-block: 4px;
+	padding-inline: 6px 8px;
+	border-radius: 2px;
+	box-sizing: border-box;
+	cursor: pointer;
+}
+
+.corinthian-picker__option.is-active {
+	background: color-mix(in oklch, var(--picker-accent) 10%, #fff);
+}
+
+.corinthian-picker__option:active {
+	background: color-mix(in oklch, var(--picker-accent) 18%, #fff);
+}
+
+.corinthian-picker__option.is-selected {
+	font-weight: 600;
+}
+
+.corinthian-picker__check {
+	display: inline-flex;
+	flex: none;
+	inline-size: 1.5em;
+	color: var(--picker-accent);
+}
+
+.corinthian-picker__check svg {
+	inline-size: 1.5em;
+	block-size: 1.5em;
+	fill: currentcolor;
+}
+
+.corinthian-picker__label {
+	min-inline-size: 0;
+	overflow-wrap: break-word;
+}
+
+.corinthian-picker__status {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 8px;
+	padding-block: 8px;
+	padding-inline: 12px;
+	color: #50575e;
+}
+
+.corinthian-picker__list:not(:empty) + .corinthian-picker__status {
+	border-block-start: 1px solid #dcdcde;
+}
+
+.corinthian-picker__status .components-spinner {
+	margin: 0;
 }
 
 .corinthian-filter__actions {
