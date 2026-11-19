@@ -33,3 +33,6 @@ addAction( 'corinthian.table.ready', 'corinthian-pro/inline-edit', () =>
 addAction( 'corinthian.table.ready', 'corinthian-pro/formatting', () =>
 	mountFormatting()
 );
+addAction( 'corinthian.table.ready', 'corinthian-pro/toolbar-ready', () =>
+	document.body.classList.add( 'corinthian-toolbar-ready' )
+);

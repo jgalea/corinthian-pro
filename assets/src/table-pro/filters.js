@@ -1,6 +1,12 @@
 import apiFetch from '@wordpress/api-fetch';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { createRoot, useState, useRef, useEffect } from '@wordpress/element';
+import {
+	createRoot,
+	flushSync,
+	useState,
+	useRef,
+	useEffect,
+} from '@wordpress/element';
 import {
 	Button,
 	Notice,
@@ -207,7 +213,45 @@ function describeRule( rule, columns ) {
 	return `${ column.label } ${ describeValue( rule, operator ) }`;
 }
 
-function navigate( filter ) {
+const SCROLL_KEY = 'corinthianFilterScroll';
+
+function holdScroll() {
+	try {
+		window.sessionStorage.setItem(
+			SCROLL_KEY,
+			JSON.stringify( {
+				y: window.scrollY,
+				path: window.location.pathname,
+				at: Date.now(),
+			} )
+		);
+	} catch ( e ) {}
+}
+
+function restoreScroll() {
+	try {
+		const saved = JSON.parse(
+			window.sessionStorage.getItem( SCROLL_KEY ) || 'null'
+		);
+		window.sessionStorage.removeItem( SCROLL_KEY );
+		if (
+			saved &&
+			saved.path === window.location.pathname &&
+			Date.now() - saved.at < 15000
+		) {
+			const jump = () => window.scrollTo( 0, saved.y );
+			jump();
+			if ( document.readyState !== 'complete' ) {
+				window.addEventListener( 'load', jump, { once: true } );
+			}
+		}
+	} catch ( e ) {}
+}
+
+function navigate( filter, keepScroll = false ) {
+	if ( keepScroll ) {
+		holdScroll();
+	}
 	const url = new URL( window.location.href );
 	url.searchParams.delete( 'paged' );
 	if ( filter && filter.rules.length ) {
@@ -320,7 +364,7 @@ function RuleRow( { rule, columns, onChange, onRemove, index } ) {
 	const operator = findOp( column, rule.op );
 	const n = index + 1;
 	return (
-		<li className="corinthian-filter__rule">
+		<li className="corinthian-filter__rule" data-rule-key={ rule.key }>
 			<SelectControl
 				__nextHasNoMarginBottom
 				__next40pxDefaultSize
@@ -542,18 +586,48 @@ function App() {
 	const [ open, setOpen ] = useState( false );
 	const [ draft, setDraft ] = useState( () => toDraft( current, columns ) );
 	const toggleRef = useRef();
+	const panelRef = useRef();
+	const pendingRule = useRef( null );
+	const [ focusKey, setFocusKey ] = useState( null );
 
 	const active = arr( current?.rules ).filter( ( r ) =>
 		findOp( findColumn( columns, r.column ), r.op )
 	);
 	const count = active.length;
+	const anyMode = current?.match === 'any' && count > 1;
 
 	useEffect( () => {
 		if ( open ) {
-			setDraft( toDraft( current, columns ) );
+			const next = toDraft( current, columns );
+			setDraft( next );
+			if ( pendingRule.current !== null ) {
+				setFocusKey( next.rules[ pendingRule.current ]?.key ?? null );
+				pendingRule.current = null;
+			}
 		}
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
 	}, [ open ] );
+
+	useEffect( () => {
+		if ( focusKey === null ) {
+			return;
+		}
+		const row = panelRef.current?.querySelector(
+			`[data-rule-key="${ focusKey }"]`
+		);
+		row?.querySelector( 'select, input, button' )?.focus();
+		row?.scrollIntoView( { block: 'nearest' } );
+		setFocusKey( null );
+	}, [ focusKey ] );
+
+	const editChip = ( index ) => {
+		if ( open ) {
+			setFocusKey( draft.rules[ index ]?.key ?? null );
+			return;
+		}
+		pendingRule.current = index;
+		setOpen( true );
+	};
 
 	const updateRule = ( key, next ) =>
 		setDraft( ( d ) => ( {
@@ -571,7 +645,7 @@ function App() {
 
 	const removeChip = ( index ) => {
 		const rules = active.filter( ( _, i ) => i !== index );
-		navigate( { match: current.match, rules } );
+		navigate( { match: current.match, rules }, true );
 	};
 
 	return (
@@ -606,10 +680,23 @@ function App() {
 				</Button>
 				<SegmentsMenu store={ segments } />
 				<SegmentToast store={ segments } />
-				{ active.length > 0 && (
+			</div>
+			{ count > 0 && (
+				<div className="corinthian-filter__chiprow">
+					{ anyMode && (
+						<span
+							className="corinthian-filter__match-label"
+							id="corinthian-filter-match"
+						>
+							{ __( 'Any of:', 'corinthian-pro' ) }
+						</span>
+					) }
 					<ul
 						className="corinthian-filter__chips"
 						aria-label={ __( 'Active filters', 'corinthian-pro' ) }
+						aria-describedby={
+							anyMode ? 'corinthian-filter-match' : undefined
+						}
 					>
 						{ active.map( ( rule, i ) => {
 							const text = describeRule( rule, columns );
@@ -618,7 +705,16 @@ function App() {
 									key={ i }
 									className="corinthian-filter__chip"
 								>
-									<span>{ text }</span>
+									<Button
+										className="corinthian-filter__chip-edit"
+										title={ __(
+											'Edit this filter',
+											'corinthian-pro'
+										) }
+										onClick={ () => editChip( i ) }
+									>
+										{ text }
+									</Button>
 									<Button
 										icon="no-alt"
 										size="small"
@@ -635,13 +731,21 @@ function App() {
 							);
 						} ) }
 					</ul>
-				) }
-			</div>
+					<Button
+						variant="link"
+						className="corinthian-filter__clear-all"
+						onClick={ () => navigate( null, true ) }
+					>
+						{ __( 'Clear all', 'corinthian-pro' ) }
+					</Button>
+				</div>
+			) }
 
 			{ open && (
 				// eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- form-level Escape handler
 				<div
 					id="corinthian-filter-panel"
+					ref={ panelRef }
 					className="corinthian-filter__panel"
 					role="group"
 					aria-label={ __( 'Filter rules', 'corinthian-pro' ) }
@@ -727,7 +831,7 @@ function App() {
 							<Button
 								variant="tertiary"
 								isDestructive
-								onClick={ () => navigate( null ) }
+								onClick={ () => navigate( null, true ) }
 							>
 								{ __( 'Clear', 'corinthian-pro' ) }
 							</Button>
@@ -769,5 +873,7 @@ export function mountFilters( parent ) {
 		const anchor = table.closest( '.corinthian-scroll' ) || table;
 		anchor.parentNode.insertBefore( container, anchor );
 	}
-	createRoot( container ).render( <App /> );
+	const root = createRoot( container );
+	flushSync( () => root.render( <App /> ) );
+	restoreScroll();
 }
