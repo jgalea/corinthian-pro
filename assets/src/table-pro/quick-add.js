@@ -1,5 +1,11 @@
 import apiFetch from '@wordpress/api-fetch';
-import { createRoot, useState, useRef, useEffect } from '@wordpress/element';
+import {
+	createRoot,
+	flushSync,
+	useState,
+	useRef,
+	useEffect,
+} from '@wordpress/element';
 import { Button, TextControl, Notice } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 
@@ -105,5 +111,6 @@ export function mountQuickAdd( parent ) {
 	const container = document.createElement( 'div' );
 	container.id = 'corinthian-quick-add';
 	parent.appendChild( container );
-	createRoot( container ).render( <QuickAdd config={ config } /> );
+	const root = createRoot( container );
+	flushSync( () => root.render( <QuickAdd config={ config } /> ) );
 }

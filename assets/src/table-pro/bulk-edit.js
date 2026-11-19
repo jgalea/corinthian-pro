@@ -1,6 +1,12 @@
 import apiFetch from '@wordpress/api-fetch';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { createRoot, useState, useEffect, useRef } from '@wordpress/element';
+import {
+	createRoot,
+	flushSync,
+	useState,
+	useEffect,
+	useRef,
+} from '@wordpress/element';
 import {
 	Button,
 	Modal,
@@ -449,5 +455,6 @@ export function mountBulkEdit( parent ) {
 	const container = document.createElement( 'div' );
 	container.id = 'corinthian-bulk-root';
 	parent.appendChild( container );
-	createRoot( container ).render( <App /> );
+	const root = createRoot( container );
+	flushSync( () => root.render( <App /> ) );
 }
