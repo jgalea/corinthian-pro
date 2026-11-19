@@ -40,6 +40,7 @@ final class TypeDescriptionListener {
 				$screen
 			);
 			$description['filter_operators'] = $default;
+			$description['filterable']       = ! $type instanceof \Corinthian\Columns\Types\NativeType || array() !== $default;
 			$variants                        = array();
 			foreach ( (array) ( $description['settings'] ?? array() ) as $field ) {
 				if ( ! is_array( $field ) || 'select' !== ( $field['type'] ?? '' ) || empty( $field['name'] ) || ! is_array( $field['options'] ?? null ) ) {

@@ -59,6 +59,7 @@ abstract class MetaTextType extends WpraType implements Sortable, Filterable {
 			case 'contains':
 			case 'eq':
 			case 'starts':
+			case 'ends':
 				$match = PostFilter::text_where( $col, $op, $value );
 				return null === $match ? null : PostFilter::wrap( $have( $match ) );
 			case 'not_contains':

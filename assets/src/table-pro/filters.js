@@ -1,16 +1,29 @@
 import apiFetch from '@wordpress/api-fetch';
+import { speak } from '@wordpress/a11y';
 import { __, _n, sprintf } from '@wordpress/i18n';
-import { createRoot, useState, useRef, useEffect } from '@wordpress/element';
+import {
+	createPortal,
+	createRoot,
+	flushSync,
+	useState,
+	useRef,
+	useEffect,
+} from '@wordpress/element';
 import {
 	Button,
-	CheckboxControl,
-	Dropdown,
-	Modal,
 	Notice,
 	SelectControl,
 	TextControl,
 } from '@wordpress/components';
 import { aiEnabled } from './ai';
+import { ValuePicker } from './value-picker';
+import {
+	SaveSegment,
+	SegmentToast,
+	SegmentsMenu,
+	holdDefault,
+	useSegments,
+} from './segments';
 
 const config = window.corinthianTable;
 const filterConfig = config?.filter;
@@ -112,28 +125,175 @@ function cleanFilter( draft, columns ) {
 	return { match: draft.match, rules };
 }
 
+function ruleProblem( rule, columns ) {
+	const operator = findOp( findColumn( columns, rule.column ), rule.op );
+	if ( ! operator ) {
+		return __( 'Choose a column and a comparison.', 'corinthian-pro' );
+	}
+	if ( operator.input === 'none' ) {
+		return '';
+	}
+	if ( operator.op === 'between' ) {
+		const pair = arr( rule.value ).slice( 0, 2 );
+		const missing =
+			pair.length < 2 || pair.some( ( v ) => v === '' || v === null );
+		return missing ? __( 'Enter both values.', 'corinthian-pro' ) : '';
+	}
+	if ( isMulti( operator.op ) ) {
+		return arr( rule.value ).length
+			? ''
+			: __( 'Choose at least one value.', 'corinthian-pro' );
+	}
+	if (
+		rule.value !== '' &&
+		rule.value !== null &&
+		rule.value !== undefined
+	) {
+		return '';
+	}
+	if ( operator.input === 'select' ) {
+		return __( 'Choose a value.', 'corinthian-pro' );
+	}
+	if ( operator.input === 'date' ) {
+		return __( 'Choose a date.', 'corinthian-pro' );
+	}
+	if ( operator.input === 'number' ) {
+		return __( 'Enter a number.', 'corinthian-pro' );
+	}
+	return __( 'Enter a value.', 'corinthian-pro' );
+}
+
+const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function formatDay( value ) {
+	const m = ISO_DAY.exec( String( value ) );
+	if ( ! m ) {
+		return String( value );
+	}
+	const date = new Date(
+		Number( m[ 1 ] ),
+		Number( m[ 2 ] ) - 1,
+		Number( m[ 3 ] )
+	);
+	const locale = document.documentElement.lang || undefined;
+	try {
+		return new Intl.DateTimeFormat( locale, {
+			dateStyle: 'medium',
+		} ).format( date );
+	} catch ( e ) {
+		return new Intl.DateTimeFormat( undefined, {
+			dateStyle: 'medium',
+		} ).format( date );
+	}
+}
+
+function describeValue( rule, operator ) {
+	const options = operator.options || {};
+	const show = ( v ) =>
+		operator.input === 'date' ? formatDay( v ) : options[ v ] ?? v;
+	const days = Number( rule.value );
+	switch ( Number.isFinite( days ) && rule.value !== '' ? rule.op : '' ) {
+		case 'within_days':
+			return sprintf(
+				/* translators: %d: number of days */ _n(
+					'in the last %d day',
+					'in the last %d days',
+					days,
+					'corinthian-pro'
+				),
+				days
+			);
+		case 'older_than_days':
+			return sprintf(
+				/* translators: %d: number of days */ _n(
+					'older than %d day',
+					'older than %d days',
+					days,
+					'corinthian-pro'
+				),
+				days
+			);
+		case 'next_days':
+			return sprintf(
+				/* translators: %d: number of days */ _n(
+					'in the next %d day',
+					'in the next %d days',
+					days,
+					'corinthian-pro'
+				),
+				days
+			);
+	}
+	if ( operator.input === 'none' ) {
+		return operator.label;
+	}
+	if ( rule.op === 'between' ) {
+		const [ from = '', to = '' ] = arr( rule.value );
+		return sprintf(
+			/* translators: 1: start of a range, 2: end of a range */ __(
+				'between %1$s and %2$s',
+				'corinthian-pro'
+			),
+			show( from ),
+			show( to )
+		);
+	}
+	const value = Array.isArray( rule.value )
+		? rule.value.map( show ).join( ', ' )
+		: show( rule.value );
+	return `${ operator.label } ${ value }`;
+}
+
 function describeRule( rule, columns ) {
 	const column = findColumn( columns, rule.column );
 	const operator = findOp( column, rule.op );
 	if ( ! column || ! operator ) {
 		return '';
 	}
-	const options = operator.options || {};
-	const show = ( v ) => options[ v ] ?? v;
-	let value = '';
-	if ( operator.input !== 'none' ) {
-		value = Array.isArray( rule.value )
-			? rule.value
-					.map( show )
-					.join( operator.op === 'between' ? ' – ' : ', ' )
-			: show( rule.value );
-	}
-	return [ column.label, operator.label, value ]
-		.filter( ( p ) => p !== '' )
-		.join( ' ' );
+	return `${ column.label } ${ describeValue( rule, operator ) }`;
 }
 
-function navigate( filter ) {
+const ANNOUNCE_KEY = 'corinthian-filter-announce';
+
+const SCROLL_KEY = 'corinthianFilterScroll';
+
+function holdScroll() {
+	try {
+		window.sessionStorage.setItem(
+			SCROLL_KEY,
+			JSON.stringify( {
+				y: window.scrollY,
+				path: window.location.pathname,
+				at: Date.now(),
+			} )
+		);
+	} catch ( e ) {}
+}
+
+function restoreScroll() {
+	try {
+		const saved = JSON.parse(
+			window.sessionStorage.getItem( SCROLL_KEY ) || 'null'
+		);
+		window.sessionStorage.removeItem( SCROLL_KEY );
+		if (
+			saved &&
+			saved.path === window.location.pathname &&
+			Date.now() - saved.at < 15000
+		) {
+			const jump = () => window.scrollTo( 0, saved.y );
+			jump();
+			if ( document.readyState !== 'complete' ) {
+				window.addEventListener( 'load', jump, { once: true } );
+			}
+		}
+	} catch ( e ) {}
+}
+
+function navigate( filter, keepScroll = false ) {
+	if ( keepScroll ) {
+		holdScroll();
+	}
 	const url = new URL( window.location.href );
 	url.searchParams.delete( 'paged' );
 	if ( filter && filter.rules.length ) {
@@ -141,8 +301,16 @@ function navigate( filter ) {
 	} else {
 		url.searchParams.delete( filterConfig.param );
 	}
+	holdDefault( url, ! filter );
+	try {
+		window.sessionStorage.setItem( ANNOUNCE_KEY, '1' );
+	} catch ( e ) {
+		// Announcements are a bonus when storage is blocked.
+	}
 	window.location.assign( url.toString() );
 }
+
+const DAY_OPS = new Set( [ 'within_days', 'older_than_days', 'next_days' ] );
 
 function ValueInput( { rule, operator, onChange, label } ) {
 	if ( ! operator || operator.input === 'none' ) {
@@ -155,7 +323,7 @@ function ValueInput( { rule, operator, onChange, label } ) {
 				<TextControl
 					__nextHasNoMarginBottom
 					__next40pxDefaultSize
-					type="number"
+					type={ operator.input === 'date' ? 'date' : 'number' }
 					label={ __( 'From', 'corinthian-pro' ) }
 					hideLabelFromVision
 					value={ from }
@@ -165,7 +333,7 @@ function ValueInput( { rule, operator, onChange, label } ) {
 				<TextControl
 					__nextHasNoMarginBottom
 					__next40pxDefaultSize
-					type="number"
+					type={ operator.input === 'date' ? 'date' : 'number' }
 					label={ __( 'To', 'corinthian-pro' ) }
 					hideLabelFromVision
 					value={ to }
@@ -175,32 +343,20 @@ function ValueInput( { rule, operator, onChange, label } ) {
 		);
 	}
 	if ( operator.input === 'select' ) {
-		const options = optionList( operator );
 		if ( isMulti( operator.op ) ) {
-			const chosen = arr( rule.value );
 			return (
-				<fieldset className="corinthian-filter__multi">
-					<legend className="screen-reader-text">{ label }</legend>
-					{ options.map( ( o ) => (
-						<CheckboxControl
-							key={ o.value }
-							__nextHasNoMarginBottom
-							label={ o.label }
-							checked={ chosen.includes( o.value ) }
-							onChange={ ( on ) =>
-								onChange(
-									on
-										? [ ...chosen, o.value ]
-										: chosen.filter(
-												( v ) => v !== o.value
-										  )
-								)
-							}
-						/>
-					) ) }
-				</fieldset>
+				<ValuePicker
+					key={ rule.column }
+					multiple
+					column={ rule.column }
+					operator={ operator }
+					label={ label }
+					value={ rule.value }
+					onChange={ onChange }
+				/>
 			);
 		}
+		const options = optionList( operator );
 		return (
 			<SelectControl
 				__nextHasNoMarginBottom
@@ -220,11 +376,28 @@ function ValueInput( { rule, operator, onChange, label } ) {
 			/>
 		);
 	}
+	if ( operator.search && operator.input === 'text' ) {
+		return (
+			<ValuePicker
+				key={ rule.column }
+				column={ rule.column }
+				operator={ operator }
+				label={ label }
+				value={ rule.value }
+				onChange={ onChange }
+			/>
+		);
+	}
 	return (
 		<TextControl
 			__nextHasNoMarginBottom
 			__next40pxDefaultSize
 			type={ operator.input }
+			min={
+				operator.input === 'number' && DAY_OPS.has( operator.op )
+					? 0
+					: undefined
+			}
 			label={ label }
 			hideLabelFromVision
 			value={ rule.value ?? '' }
@@ -233,12 +406,12 @@ function ValueInput( { rule, operator, onChange, label } ) {
 	);
 }
 
-function RuleRow( { rule, columns, onChange, onRemove, index } ) {
+function RuleRow( { rule, columns, onChange, onRemove, index, error } ) {
 	const column = findColumn( columns, rule.column );
 	const operator = findOp( column, rule.op );
 	const n = index + 1;
 	return (
-		<li className="corinthian-filter__rule">
+		<li className="corinthian-filter__rule" data-rule-key={ rule.key }>
 			<SelectControl
 				__nextHasNoMarginBottom
 				__next40pxDefaultSize
@@ -321,6 +494,9 @@ function RuleRow( { rule, columns, onChange, onRemove, index } ) {
 				) }
 				onClick={ onRemove }
 			/>
+			{ error && (
+				<p className="corinthian-filter__rule-error">{ error }</p>
+			) }
 		</li>
 	);
 }
@@ -342,14 +518,22 @@ function describeDropped( item, columns ) {
 	const rule = item?.rule;
 	let what = item?.key || '';
 	if ( rule && typeof rule === 'object' ) {
-		what =
-			describeRule( rule, columns ) ||
-			[
-				findColumn( columns, rule.column )?.label || rule.column,
-				rule.op,
-			]
-				.filter( Boolean )
-				.join( ' ' );
+		const column = findColumn( columns, rule.column );
+		if ( column ) {
+			what =
+				describeRule( rule, columns ) ||
+				[ column.label, findOp( column, rule.op )?.label ]
+					.filter( Boolean )
+					.join( ' ' );
+		} else {
+			what = rule.column
+				? sprintf(
+						/* translators: %s: column key from the link */
+						__( 'A rule on “%s”', 'corinthian-pro' ),
+						rule.column
+				  )
+				: __( 'A rule', 'corinthian-pro' );
+		}
 	}
 	const reason = DROP_REASONS()[ item?.reason ] || '';
 	return [ what, reason ].filter( Boolean ).join( ': ' );
@@ -454,155 +638,250 @@ function DescribeFilter( { columns, onLoad } ) {
 	);
 }
 
-function SaveSegment( { draft, columns, canShare, onSaved } ) {
-	const [ name, setName ] = useState( '' );
-	const [ shared, setShared ] = useState( false );
-	const [ busy, setBusy ] = useState( false );
-	const [ error, setError ] = useState( '' );
-	const filter = cleanFilter( draft, columns );
-
-	const submit = ( event ) => {
-		event.preventDefault();
-		if ( ! name.trim() || ! filter.rules.length ) {
-			return;
-		}
-		setBusy( true );
-		setError( '' );
-		apiFetch( {
-			path: `/corinthian/v1/sets/${ config.set }/segments`,
-			method: 'POST',
-			data: { name: name.trim(), filter, shared: canShare && shared },
-		} )
-			.then( ( segment ) => {
-				setName( '' );
-				setShared( false );
-				onSaved( segment );
-			} )
-			.catch( ( e ) =>
-				setError(
-					e?.message ||
-						__(
-							'The segment could not be saved.',
-							'corinthian-pro'
-						)
-				)
-			)
-			.finally( () => setBusy( false ) );
-	};
-
-	return (
-		<form className="corinthian-filter__save" onSubmit={ submit }>
-			<TextControl
-				__nextHasNoMarginBottom
-				__next40pxDefaultSize
-				label={ __( 'Segment name', 'corinthian-pro' ) }
-				value={ name }
-				onChange={ setName }
-			/>
-			{ canShare && (
-				<CheckboxControl
-					__nextHasNoMarginBottom
-					label={ __( 'Share with everyone', 'corinthian-pro' ) }
-					checked={ shared }
-					onChange={ setShared }
-				/>
-			) }
-			<Button
-				variant="secondary"
-				type="submit"
-				isBusy={ busy }
-				accessibleWhenDisabled
-				disabled={ busy || ! name.trim() || ! filter.rules.length }
-			>
-				{ __( 'Save as segment', 'corinthian-pro' ) }
-			</Button>
-			{ error && (
-				<p className="corinthian-filter__error" role="alert">
-					{ error }
-				</p>
-			) }
-		</form>
-	);
-}
-
-function SegmentRow( { segment, onApply, onDelete, canDelete } ) {
-	return (
-		<li className="corinthian-filter__segment">
-			<Button
-				className="corinthian-filter__segment-apply"
-				onClick={ onApply }
-			>
-				{ segment.name }
-			</Button>
-			{ canDelete && (
-				<Button
-					icon="trash"
-					label={ sprintf(
-						/* translators: %s: segment name */ __(
-							'Delete segment %s',
-							'corinthian-pro'
-						),
-						segment.name
-					) }
-					onClick={ onDelete }
-				/>
-			) }
-		</li>
-	);
-}
-
-function SegmentGroup( { title, segments, canDelete, onApply, onDelete } ) {
-	if ( ! segments.length ) {
+function DroppedNotice( { dropped, columns } ) {
+	const [ shown, setShown ] = useState( true );
+	if ( ! shown || ! dropped.length ) {
 		return null;
 	}
+	const unreadable = dropped.some( ( d ) => d?.reason === 'unreadable' );
+	const items = dropped.filter( ( d ) => d?.reason !== 'unreadable' );
 	return (
-		<section className="corinthian-filter__group">
-			<h3>{ title }</h3>
-			<ul>
-				{ segments.map( ( s ) => (
-					<SegmentRow
-						key={ s.id }
-						segment={ s }
-						canDelete={ canDelete }
-						onApply={ () => onApply( s ) }
-						onDelete={ () => onDelete( s ) }
-					/>
-				) ) }
-			</ul>
-		</section>
+		<Notice
+			className="corinthian-filter__notice"
+			status="warning"
+			onRemove={ () => setShown( false ) }
+		>
+			{ unreadable
+				? __(
+						"This filter link couldn't be read, so it was ignored.",
+						'corinthian-pro'
+				  )
+				: __(
+						'Some rules in this link were left out:',
+						'corinthian-pro'
+				  ) }
+			{ items.length > 0 && (
+				<ul className="corinthian-filter__dropped">
+					{ items.map( ( d, i ) => (
+						<li key={ i }>{ describeDropped( d, columns ) }</li>
+					) ) }
+				</ul>
+			) }
+		</Notice>
+	);
+}
+
+function EmptyState() {
+	return (
+		<div className="corinthian-filter-empty">
+			<p className="corinthian-filter-empty__title">
+				{ __( 'Nothing matches these filters.', 'corinthian-pro' ) }
+			</p>
+			<p className="corinthian-filter-empty__hint">
+				{ __(
+					'Remove a rule or change a value to see more rows.',
+					'corinthian-pro'
+				) }
+			</p>
+			<Button variant="secondary" onClick={ () => navigate( null ) }>
+				{ __( 'Clear filters', 'corinthian-pro' ) }
+			</Button>
+		</div>
+	);
+}
+
+function countRows() {
+	const rows = document.querySelectorAll(
+		'table.wp-list-table #the-list > tr:not(.no-items)'
+	);
+	const total = document.querySelector( '.tablenav .displaying-num' );
+	const fromTotal = Number(
+		( total?.textContent.match( /\d[\d,.]*/ ) || [ '' ] )[ 0 ].replace(
+			/[,.]/g,
+			''
+		)
+	);
+	return fromTotal || rows.length;
+}
+
+function announceResult( filtered ) {
+	let flagged = false;
+	try {
+		flagged = window.sessionStorage.getItem( ANNOUNCE_KEY ) === '1';
+		window.sessionStorage.removeItem( ANNOUNCE_KEY );
+	} catch ( e ) {
+		return;
+	}
+	if ( ! flagged ) {
+		return;
+	}
+	const n = countRows();
+	if ( ! filtered ) {
+		speak(
+			sprintf(
+				/* translators: %d: number of rows */ _n(
+					'Filters cleared. %d item.',
+					'Filters cleared. %d items.',
+					n,
+					'corinthian-pro'
+				),
+				n
+			)
+		);
+		return;
+	}
+	speak(
+		n
+			? sprintf(
+					/* translators: %d: number of rows */ _n(
+						'%d item matches the filters.',
+						'%d items match the filters.',
+						n,
+						'corinthian-pro'
+					),
+					n
+			  )
+			: __( 'No items match the filters.', 'corinthian-pro' )
+	);
+}
+
+function firstControl( root ) {
+	return (
+		root?.querySelector(
+			'.corinthian-filter__rule :is(select, input, button):not([disabled])'
+		) ||
+		root?.querySelector( '.corinthian-filter__actions button' ) ||
+		null
 	);
 }
 
 function App() {
-	const { columns, current, canShare } = filterConfig;
-	const [ segments, setSegments ] = useState( arr( filterConfig.segments ) );
+	const { columns, current } = filterConfig;
+	const segments = useSegments();
 	const [ open, setOpen ] = useState( false );
 	const [ draft, setDraft ] = useState( () => toDraft( current, columns ) );
-	const [ pendingDelete, setPendingDelete ] = useState( null );
-	const [ deleting, setDeleting ] = useState( false );
-	const [ deleteError, setDeleteError ] = useState( '' );
+	const [ errors, setErrors ] = useState( {} );
+	const [ focusKey, setFocusKey ] = useState( null );
 	const toggleRef = useRef();
+	const panelRef = useRef();
 
 	const active = arr( current?.rules ).filter( ( r ) =>
 		findOp( findColumn( columns, r.column ), r.op )
 	);
 	const count = active.length;
-	const shared = segments.filter( ( s ) => s.shared );
-	const personal = segments.filter( ( s ) => ! s.shared );
+	const anyMode = current?.match === 'any' && count > 1;
+
+	const [ emptyCell ] = useState( () => {
+		const cell = document.querySelector(
+			'table.wp-list-table tr.no-items td'
+		);
+		if ( ! cell || ! count ) {
+			return null;
+		}
+		cell.replaceChildren();
+		return cell;
+	} );
 
 	useEffect( () => {
-		if ( open ) {
-			setDraft( toDraft( current, columns ) );
+		announceResult( count > 0 );
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- once per page load
+	}, [] );
+
+	useEffect( () => {
+		if ( open && focusKey === null ) {
+			firstControl( panelRef.current )?.focus();
 		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- focus only when the panel opens
 	}, [ open ] );
 
-	const updateRule = ( key, next ) =>
+	useEffect( () => {
+		if ( focusKey === null ) {
+			return;
+		}
+		const row = panelRef.current?.querySelector(
+			`[data-rule-key="${ focusKey }"]`
+		);
+		const target =
+			row?.querySelector(
+				'.corinthian-filter__value :is(select, input, button):not([disabled])'
+			) || row?.querySelector( ':is(select, input, button)' );
+		target?.focus();
+		row?.scrollIntoView( { block: 'nearest' } );
+		setFocusKey( null );
+	}, [ focusKey ] );
+
+	const togglePanel = () => {
+		if ( ! open ) {
+			setDraft( toDraft( current, columns ) );
+			setErrors( {} );
+		}
+		setOpen( ! open );
+	};
+
+	const closePanel = () => {
+		setOpen( false );
+		toggleRef.current?.focus();
+	};
+
+	const clearError = ( key ) =>
+		setErrors( ( e ) => {
+			if ( ! ( key in e ) ) {
+				return e;
+			}
+			const { [ key ]: _gone, ...rest } = e;
+			return rest;
+		} );
+
+	const apply = () => {
+		const found = {};
+		draft.rules.forEach( ( rule ) => {
+			const problem = ruleProblem( rule, columns );
+			if ( problem ) {
+				found[ rule.key ] = problem;
+			}
+		} );
+		const keys = Object.keys( found );
+		if ( ! keys.length ) {
+			navigate( cleanFilter( draft, columns ) );
+			return;
+		}
+		setErrors( found );
+		setFocusKey( Number( keys[ 0 ] ) );
+		speak(
+			sprintf(
+				/* translators: %d: number of incomplete rules */ _n(
+					'%d rule needs a value before the filter can apply.',
+					'%d rules need a value before the filter can apply.',
+					keys.length,
+					'corinthian-pro'
+				),
+				keys.length
+			),
+			'assertive'
+		);
+	};
+
+	const editChip = ( index ) => {
+		if ( open ) {
+			setFocusKey( draft.rules[ index ]?.key ?? null );
+			return;
+		}
+		const next = toDraft( current, columns );
+		setDraft( next );
+		setErrors( {} );
+		setFocusKey( next.rules[ index ]?.key ?? null );
+		setOpen( true );
+	};
+
+	const updateRule = ( key, next ) => {
+		clearError( key );
 		setDraft( ( d ) => ( {
 			...d,
 			rules: d.rules.map( ( r ) => ( r.key === key ? next : r ) ),
 		} ) );
-	const removeRule = ( key ) =>
+	};
+	const removeRule = ( key ) => {
+		clearError( key );
 		setDraft( ( d ) => {
 			const rules = d.rules.filter( ( r ) => r.key !== key );
 			return {
@@ -610,39 +889,28 @@ function App() {
 				rules: rules.length ? rules : [ blankRule( columns ) ],
 			};
 		} );
+	};
 
 	const removeChip = ( index ) => {
 		const rules = active.filter( ( _, i ) => i !== index );
-		navigate( { match: current.match, rules } );
-	};
-
-	const confirmDelete = () => {
-		setDeleting( true );
-		setDeleteError( '' );
-		apiFetch( {
-			path: `/corinthian/v1/sets/${ config.set }/segments/${ pendingDelete.id }`,
-			method: 'DELETE',
-		} )
-			.then( () => {
-				setSegments( ( list ) =>
-					list.filter( ( s ) => s.id !== pendingDelete.id )
-				);
-				setPendingDelete( null );
-			} )
-			.catch( ( e ) =>
-				setDeleteError(
-					e?.message ||
-						__(
-							'The segment could not be deleted.',
-							'corinthian-pro'
-						)
-				)
-			)
-			.finally( () => setDeleting( false ) );
+		navigate( { match: current.match, rules }, true );
 	};
 
 	return (
-		<div className="corinthian-filter">
+		// eslint-disable-next-line jsx-a11y/no-static-element-interactions -- Escape closes the panel from anywhere in the bar
+		<div
+			className="corinthian-filter"
+			onKeyDown={ ( e ) => {
+				if (
+					e.key === 'Escape' &&
+					open &&
+					! e.defaultPrevented &&
+					! e.target.closest?.( '.components-popover' )
+				) {
+					closePanel();
+				}
+			} }
+		>
 			<div className="corinthian-filter__bar">
 				<Button
 					ref={ toggleRef }
@@ -651,7 +919,16 @@ function App() {
 					icon="filter"
 					aria-expanded={ open }
 					aria-controls="corinthian-filter-panel"
-					onClick={ () => setOpen( ! open ) }
+					onClick={ togglePanel }
+					onKeyDown={ ( e ) => {
+						if ( open && e.key === 'Tab' && ! e.shiftKey ) {
+							const target = firstControl( panelRef.current );
+							if ( target ) {
+								e.preventDefault();
+								target.focus();
+							}
+						}
+					} }
 				>
 					{ __( 'Filter', 'corinthian-pro' ) }
 					{ count > 0 && (
@@ -671,59 +948,25 @@ function App() {
 						</span>
 					) }
 				</Button>
-				<Dropdown
-					popoverProps={ { placement: 'bottom-start' } }
-					renderToggle={ ( { isOpen, onToggle } ) => (
-						<Button
-							className="corinthian-filter__segments-toggle"
-							variant="tertiary"
-							aria-expanded={ isOpen }
-							aria-haspopup="true"
-							onClick={ onToggle }
+				<SegmentsMenu store={ segments } />
+				<SegmentToast store={ segments } />
+			</div>
+			{ count > 0 && (
+				<div className="corinthian-filter__chiprow">
+					{ anyMode && (
+						<span
+							className="corinthian-filter__match-label"
+							id="corinthian-filter-match"
 						>
-							{ __( 'Segments', 'corinthian-pro' ) }
-						</Button>
+							{ __( 'Any of:', 'corinthian-pro' ) }
+						</span>
 					) }
-					renderContent={ ( { onClose } ) => (
-						<div className="corinthian-filter__segments">
-							{ ! segments.length && (
-								<p className="corinthian-filter__empty">
-									{ __(
-										'No saved segments.',
-										'corinthian-pro'
-									) }
-								</p>
-							) }
-							<SegmentGroup
-								title={ __(
-									'Shared segments',
-									'corinthian-pro'
-								) }
-								segments={ shared }
-								canDelete={ canShare }
-								onApply={ ( s ) => navigate( s.filter ) }
-								onDelete={ ( s ) => {
-									onClose();
-									setPendingDelete( s );
-								} }
-							/>
-							<SegmentGroup
-								title={ __( 'My segments', 'corinthian-pro' ) }
-								segments={ personal }
-								canDelete
-								onApply={ ( s ) => navigate( s.filter ) }
-								onDelete={ ( s ) => {
-									onClose();
-									setPendingDelete( s );
-								} }
-							/>
-						</div>
-					) }
-				/>
-				{ active.length > 0 && (
 					<ul
 						className="corinthian-filter__chips"
 						aria-label={ __( 'Active filters', 'corinthian-pro' ) }
+						aria-describedby={
+							anyMode ? 'corinthian-filter-match' : undefined
+						}
 					>
 						{ active.map( ( rule, i ) => {
 							const text = describeRule( rule, columns );
@@ -732,7 +975,16 @@ function App() {
 									key={ i }
 									className="corinthian-filter__chip"
 								>
-									<span>{ text }</span>
+									<Button
+										className="corinthian-filter__chip-edit"
+										title={ __(
+											'Edit this filter',
+											'corinthian-pro'
+										) }
+										onClick={ () => editChip( i ) }
+									>
+										{ text }
+									</Button>
 									<Button
 										icon="no-alt"
 										size="small"
@@ -749,22 +1001,28 @@ function App() {
 							);
 						} ) }
 					</ul>
-				) }
-			</div>
+					<Button
+						variant="link"
+						className="corinthian-filter__clear-all"
+						onClick={ () => navigate( null, true ) }
+					>
+						{ __( 'Clear all', 'corinthian-pro' ) }
+					</Button>
+				</div>
+			) }
+
+			<DroppedNotice
+				dropped={ arr( filterConfig.dropped ) }
+				columns={ columns }
+			/>
 
 			{ open && (
-				// eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions -- form-level Escape handler
 				<div
+					ref={ panelRef }
 					id="corinthian-filter-panel"
 					className="corinthian-filter__panel"
 					role="group"
 					aria-label={ __( 'Filter rules', 'corinthian-pro' ) }
-					onKeyDown={ ( e ) => {
-						if ( e.key === 'Escape' ) {
-							setOpen( false );
-							toggleRef.current?.focus();
-						}
-					} }
 				>
 					{ aiEnabled() && (
 						<DescribeFilter
@@ -812,6 +1070,7 @@ function App() {
 								index={ i }
 								rule={ rule }
 								columns={ columns }
+								error={ errors[ rule.key ] }
 								onChange={ ( next ) =>
 									updateRule( rule.key, next )
 								}
@@ -841,77 +1100,23 @@ function App() {
 							<Button
 								variant="tertiary"
 								isDestructive
-								onClick={ () => navigate( null ) }
+								onClick={ () => navigate( null, true ) }
 							>
 								{ __( 'Clear', 'corinthian-pro' ) }
 							</Button>
 						) }
-						<Button
-							variant="primary"
-							onClick={ () =>
-								navigate( cleanFilter( draft, columns ) )
-							}
-						>
+						<Button variant="primary" onClick={ apply }>
 							{ __( 'Apply', 'corinthian-pro' ) }
 						</Button>
 					</div>
 
 					<SaveSegment
-						draft={ draft }
-						columns={ columns }
-						canShare={ canShare }
-						onSaved={ ( segment ) =>
-							setSegments( ( list ) => [ ...list, segment ] )
-						}
+						store={ segments }
+						draft={ cleanFilter( draft, columns ) }
 					/>
 				</div>
 			) }
-
-			{ pendingDelete && (
-				<Modal
-					title={ __( 'Delete segment', 'corinthian-pro' ) }
-					size="small"
-					onRequestClose={ () =>
-						! deleting && setPendingDelete( null )
-					}
-				>
-					<p>
-						{ sprintf(
-							/* translators: %s: segment name */ __(
-								'Delete the segment "%s"?',
-								'corinthian-pro'
-							),
-							pendingDelete.name
-						) }
-					</p>
-					{ deleteError && (
-						<p className="corinthian-filter__error" role="alert">
-							{ deleteError }
-						</p>
-					) }
-					<div className="corinthian-filter__actions">
-						<span className="corinthian-filter__spacer" />
-						<Button
-							variant="tertiary"
-							onClick={ () => setPendingDelete( null ) }
-							disabled={ deleting }
-							accessibleWhenDisabled
-						>
-							{ __( 'Cancel', 'corinthian-pro' ) }
-						</Button>
-						<Button
-							variant="primary"
-							isDestructive
-							isBusy={ deleting }
-							onClick={ confirmDelete }
-							disabled={ deleting }
-							accessibleWhenDisabled
-						>
-							{ __( 'Delete', 'corinthian-pro' ) }
-						</Button>
-					</div>
-				</Modal>
-			) }
+			{ emptyCell && createPortal( <EmptyState />, emptyCell ) }
 		</div>
 	);
 }
@@ -933,5 +1138,7 @@ export function mountFilters( parent ) {
 		const anchor = table.closest( '.corinthian-scroll' ) || table;
 		anchor.parentNode.insertBefore( container, anchor );
 	}
-	createRoot( container ).render( <App /> );
+	const root = createRoot( container );
+	flushSync( () => root.render( <App /> ) );
+	restoreScroll();
 }

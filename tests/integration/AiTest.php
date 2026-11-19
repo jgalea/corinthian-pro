@@ -260,7 +260,7 @@ final class AiTest extends WP_UnitTestCase {
 		$this->assertStringContainsString( '"Short drafts"', $call['user'] );
 		$this->assertStringContainsString( '"within_days"', $call['system'] );
 		$this->assertStringNotContainsString( 'Short drafts', $call['system'] );
-		$this->assertSame( array( 'status', 'excerpt', 'words', 'health' ), $call['schema']['properties']['rules']['items']['properties']['column']['enum'] );
+		$this->assertSame( array( 'title', 'status', 'excerpt', 'words', 'health' ), $call['schema']['properties']['rules']['items']['properties']['column']['enum'] );
 		$this->assertContains( 'not_in', $call['schema']['properties']['rules']['items']['properties']['op']['enum'] );
 		$this->assertStringContainsString( '"publish"', $call['user'], 'Status options are listed.' );
 	}
@@ -278,7 +278,7 @@ final class AiTest extends WP_UnitTestCase {
 		preg_match( '#<columns>\n(.*)\n</columns>#s', $this->calls[0]['user'], $m );
 		$columns = json_decode( $m[1], true );
 		$this->assertIsArray( $columns );
-		$status = $columns[0];
+		$status = $columns[ array_search( 'status', array_column( $columns, 'id' ), true ) ];
 		$this->assertSame( 'status', $status['id'] );
 		$this->assertSame( array( 'in', 'not_in' ), array_column( $status['operators'], 'op' ) );
 		$this->assertCount( 50, $status['operators'][0]['options'] );
