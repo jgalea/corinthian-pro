@@ -151,6 +151,11 @@ final class Sql {
 					'label' => __( 'starts with', 'corinthian-pro' ),
 					'input' => 'text',
 				),
+				array(
+					'op'    => 'ends',
+					'label' => __( 'ends with', 'corinthian-pro' ),
+					'input' => 'text',
+				),
 			),
 			$empty
 		);
@@ -187,6 +192,7 @@ final class Sql {
 			'contains'     => $wpdb->prepare( "{$col} LIKE %s", '%' . $like . '%' ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			'not_contains' => $wpdb->prepare( "({$col} IS NULL OR {$col} NOT LIKE %s)", '%' . $like . '%' ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			'starts'       => $wpdb->prepare( "{$col} LIKE %s", $like . '%' ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			'ends'         => $wpdb->prepare( "{$col} LIKE %s", '%' . $like ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			'eq'           => $wpdb->prepare( "{$col} = %s", $value ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			'neq'          => $wpdb->prepare( "({$col} IS NULL OR {$col} <> %s)", $value ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 			default        => null,

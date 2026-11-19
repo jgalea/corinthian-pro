@@ -129,6 +129,15 @@
 	gap: 6px;
 }
 
+.corinthian-filter__between > .components-base-control {
+	flex: 1 1 0;
+	min-inline-size: 0;
+}
+
+.corinthian-filter__rule > .corinthian-filter__value:has(input[type="date"]) {
+	flex-basis: 300px;
+}
+
 .corinthian-filter__multi {
 	display: grid;
 	gap: 6px;

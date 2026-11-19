@@ -112,25 +112,94 @@ function cleanFilter( draft, columns ) {
 	return { match: draft.match, rules };
 }
 
+const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function formatDay( value ) {
+	const m = ISO_DAY.exec( String( value ) );
+	if ( ! m ) {
+		return String( value );
+	}
+	const date = new Date(
+		Number( m[ 1 ] ),
+		Number( m[ 2 ] ) - 1,
+		Number( m[ 3 ] )
+	);
+	const locale = document.documentElement.lang || undefined;
+	try {
+		return new Intl.DateTimeFormat( locale, {
+			dateStyle: 'medium',
+		} ).format( date );
+	} catch ( e ) {
+		return new Intl.DateTimeFormat( undefined, {
+			dateStyle: 'medium',
+		} ).format( date );
+	}
+}
+
+function describeValue( rule, operator ) {
+	const options = operator.options || {};
+	const show = ( v ) =>
+		operator.input === 'date' ? formatDay( v ) : options[ v ] ?? v;
+	const days = Number( rule.value );
+	switch ( Number.isFinite( days ) && rule.value !== '' ? rule.op : '' ) {
+		case 'within_days':
+			return sprintf(
+				/* translators: %d: number of days */ _n(
+					'in the last %d day',
+					'in the last %d days',
+					days,
+					'corinthian-pro'
+				),
+				days
+			);
+		case 'older_than_days':
+			return sprintf(
+				/* translators: %d: number of days */ _n(
+					'older than %d day',
+					'older than %d days',
+					days,
+					'corinthian-pro'
+				),
+				days
+			);
+		case 'next_days':
+			return sprintf(
+				/* translators: %d: number of days */ _n(
+					'in the next %d day',
+					'in the next %d days',
+					days,
+					'corinthian-pro'
+				),
+				days
+			);
+	}
+	if ( operator.input === 'none' ) {
+		return operator.label;
+	}
+	if ( rule.op === 'between' ) {
+		const [ from = '', to = '' ] = arr( rule.value );
+		return sprintf(
+			/* translators: 1: start of a range, 2: end of a range */ __(
+				'between %1$s and %2$s',
+				'corinthian-pro'
+			),
+			show( from ),
+			show( to )
+		);
+	}
+	const value = Array.isArray( rule.value )
+		? rule.value.map( show ).join( ', ' )
+		: show( rule.value );
+	return `${ operator.label } ${ value }`;
+}
+
 function describeRule( rule, columns ) {
 	const column = findColumn( columns, rule.column );
 	const operator = findOp( column, rule.op );
 	if ( ! column || ! operator ) {
 		return '';
 	}
-	const options = operator.options || {};
-	const show = ( v ) => options[ v ] ?? v;
-	let value = '';
-	if ( operator.input !== 'none' ) {
-		value = Array.isArray( rule.value )
-			? rule.value
-					.map( show )
-					.join( operator.op === 'between' ? ' – ' : ', ' )
-			: show( rule.value );
-	}
-	return [ column.label, operator.label, value ]
-		.filter( ( p ) => p !== '' )
-		.join( ' ' );
+	return `${ column.label } ${ describeValue( rule, operator ) }`;
 }
 
 function navigate( filter ) {
@@ -144,6 +213,8 @@ function navigate( filter ) {
 	window.location.assign( url.toString() );
 }
 
+const DAY_OPS = new Set( [ 'within_days', 'older_than_days', 'next_days' ] );
+
 function ValueInput( { rule, operator, onChange, label } ) {
 	if ( ! operator || operator.input === 'none' ) {
 		return null;
@@ -155,7 +226,7 @@ function ValueInput( { rule, operator, onChange, label } ) {
 				<TextControl
 					__nextHasNoMarginBottom
 					__next40pxDefaultSize
-					type="number"
+					type={ operator.input === 'date' ? 'date' : 'number' }
 					label={ __( 'From', 'corinthian-pro' ) }
 					hideLabelFromVision
 					value={ from }
@@ -165,7 +236,7 @@ function ValueInput( { rule, operator, onChange, label } ) {
 				<TextControl
 					__nextHasNoMarginBottom
 					__next40pxDefaultSize
-					type="number"
+					type={ operator.input === 'date' ? 'date' : 'number' }
 					label={ __( 'To', 'corinthian-pro' ) }
 					hideLabelFromVision
 					value={ to }
@@ -225,6 +296,11 @@ function ValueInput( { rule, operator, onChange, label } ) {
 			__nextHasNoMarginBottom
 			__next40pxDefaultSize
 			type={ operator.input }
+			min={
+				operator.input === 'number' && DAY_OPS.has( operator.op )
+					? 0
+					: undefined
+			}
 			label={ label }
 			hideLabelFromVision
 			value={ rule.value ?? '' }

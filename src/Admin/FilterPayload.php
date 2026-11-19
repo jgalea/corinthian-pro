@@ -48,10 +48,14 @@ final class FilterPayload {
 			if ( ! $type instanceof \Corinthian\Columns\Filterable || false === $config->setting( 'filterable', true ) ) {
 				continue;
 			}
+			$operators = $type->filter_operators( $config, $screen );
+			if ( ! $operators ) {
+				continue;
+			}
 			$out[] = array(
 				'id'        => $config->id,
 				'label'     => '' !== $config->label ? $config->label : ( $native[ (string) $config->setting( 'key' ) ] ?? $type->label() ),
-				'operators' => $type->filter_operators( $config, $screen ),
+				'operators' => $operators,
 			);
 		}
 		return $out;

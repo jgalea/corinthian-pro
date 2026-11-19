@@ -172,7 +172,7 @@ final class XProfileType extends BpType implements Filterable, Editable {
 			'not_empty'    => array( $present, false ),
 			'neq'          => $this->positive( PostFilter::text_where( $col, 'eq', $value ), true ),
 			'not_contains' => $this->positive( PostFilter::text_where( $col, 'contains', $value ), true ),
-			'contains', 'eq', 'starts' => $this->positive( PostFilter::text_where( $col, $op, $value ), false ),
+			'contains', 'eq', 'starts', 'ends' => $this->positive( PostFilter::text_where( $col, $op, $value ), false ),
 			default        => null,
 		};
 	}
