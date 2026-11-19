@@ -10,6 +10,24 @@ const wp = ( cmd ) => execSync( `docker exec ${ CLI } wp ${ cmd }`, { encoding: 
 // Own fixture: three fresh posts carrying a status unique to this run, trashed on exit.
 // Counts compare against the live total, so other tests' posts don't matter.
 const stamp = `Draft review ${ Date.now() }`;
+const php = ( code ) => wp( `eval '${ code.replace( /'/g, `'"'"'` ) }'` );
+// Own column set with a text column on the "status" meta key, made active for the admin and restored on exit.
+const seeded = JSON.parse( php( `
+	$key = Corinthian\\Sets\\SetRepository::active_meta_key( "post:post" );
+	$previous = (int) get_user_meta( 1, $key, true );
+	$set = Corinthian\\Plugin::instance()->sets->save( array( "screen" => "post:post", "title" => "E2E filters", "columns" => array( array( "id" => "status", "type" => "post.meta", "label" => "Status", "settings" => array( "meta_key" => "status", "display" => "text" ) ) ) ) );
+	update_user_meta( 1, $key, $set->id );
+	echo wp_json_encode( array( "set" => $set->id, "previous" => $previous ) );
+` ) );
+process.on( 'exit', () => {
+	php( `
+		$key = Corinthian\\Sets\\SetRepository::active_meta_key( "post:post" );
+		if ( ${ seeded.previous } ) { update_user_meta( 1, $key, ${ seeded.previous } ); } else { delete_user_meta( 1, $key ); }
+		Corinthian\\Plugin::instance()->sets->delete( ${ seeded.set } );
+		delete_metadata( "user", 0, "corinthian_segments_${ seeded.set }", "", true );
+		delete_metadata( "user", 0, "corinthian_segments_default_${ seeded.set }", "", true );
+	` );
+} );
 const fixtures = [ 1, 2, 3 ].map( () => Number( wp( 'post create --post_title="Filter fixture" --post_status=publish --post_author=1 --porcelain' ) ) );
 fixtures.forEach( ( id ) => wp( `post meta update ${ id } status "${ stamp }"` ) );
 process.on( 'exit', () => fixtures.forEach( ( id ) => wp( `post delete ${ id } --force` ) ) );

@@ -199,7 +199,10 @@ await p.unroute( segmentRoute );
 // Save with an unapplied draft: the user chooses, and "applied only" saves what the list shows.
 await visit( filtered );
 await p.click( '.corinthian-filter__toggle' );
-await p.locator( '#corinthian-filter-panel' ).getByRole( 'checkbox', { name: 'Published' } ).check();
+const draftPicker = p.getByRole( 'combobox', { name: 'Value, rule 1' } );
+await draftPicker.click();
+await p.locator( '#corinthian-filter-panel' ).getByRole( 'listbox' ).getByRole( 'option', { name: 'Published' } ).click();
+await draftPicker.press( 'Escape' );
 await p.getByLabel( 'Segment name' ).fill( `${ name } applied only` );
 await p.getByRole( 'button', { name: 'Save as segment' } ).click();
 const choice = p.locator( '.corinthian-filter__save-choice' );
