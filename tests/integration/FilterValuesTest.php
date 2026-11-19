@@ -298,6 +298,25 @@ final class FilterValuesTest extends WP_UnitTestCase {
 		$this->assertSame( 'Zed Beyond', $users['items'][0]['label'] );
 	}
 
+	public function test_people_who_cannot_list_users_only_see_users_who_write_posts(): void {
+		$subscriber = get_user_by( 'login', 'bulk-0001' );
+		$this->assertInstanceOf( \WP_User::class, $subscriber );
+		$set    = Plugin::instance()->sets->find( self::$set_id );
+		$config = $set->column( 'author' );
+		$screen = Plugin::instance()->screens->get( 'post:post' );
+		$type   = Plugin::instance()->registry->get( $config->type );
+
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'editor' ) ) );
+		$in = array_values( array_filter( $this->operators( 'author' ), static fn( $o ) => 'in' === $o['op'] ) )[0];
+		$this->assertArrayHasKey( (string) self::$last_user, $in['options'] );
+		$this->assertArrayNotHasKey( (string) $subscriber->ID, $in['options'], 'Subscribers stay out of the inline list' );
+		$this->assertSame( array(), $type->filter_options( $config, $screen, 'Bulk', 1, 20 )['options'], 'Subscribers stay out of the search' );
+		$this->assertSame( array(), $type->filter_labels( $config, $screen, array( (string) $subscriber->ID ) ), 'A subscriber id gets no label' );
+
+		wp_set_current_user( self::$admin );
+		$this->assertSame( array( (string) $subscriber->ID => 'Bulk Person 0001' ), $type->filter_labels( $config, $screen, array( (string) $subscriber->ID ) ) );
+	}
+
 	public function test_the_table_payload_carries_labels_for_the_current_filter(): void {
 		$set     = Plugin::instance()->sets->find( self::$set_id );
 		$screen  = Plugin::instance()->screens->get( 'post:post' );
