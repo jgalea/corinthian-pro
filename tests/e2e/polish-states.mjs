@@ -69,7 +69,7 @@ await p.goto( filterUrl( { match: 'all', rules: [ { column: 'nope', op: 'eq', va
 await toggle().waitFor();
 check( await notice().isVisible(), 'stale link: a notice shows' );
 const text = ( await notice().textContent().catch( () => '' ) ) || '';
-check( text.includes( 'nope' ) && text.includes( "can't be filtered" ), `notice names the dropped rule and why (${ text.trim().slice( 0, 90 ) })` );
+check( text.includes( 'nope' ) && text.includes( "can't be filtered" ) && ! text.includes( 'nope eq' ), `notice names the dropped rule and why (${ text.trim().slice( 0, 90 ) })` );
 check( ( await p.locator( '.corinthian-filter__chip' ).count() ) === 1, 'the valid rule still applies' );
 await shot( '1440-dropped-notice' );
 await notice().getByRole( 'button', { name: /close|dismiss/i } ).click();

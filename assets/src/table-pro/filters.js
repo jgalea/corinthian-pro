@@ -518,14 +518,22 @@ function describeDropped( item, columns ) {
 	const rule = item?.rule;
 	let what = item?.key || '';
 	if ( rule && typeof rule === 'object' ) {
-		what =
-			describeRule( rule, columns ) ||
-			[
-				findColumn( columns, rule.column )?.label || rule.column,
-				rule.op,
-			]
-				.filter( Boolean )
-				.join( ' ' );
+		const column = findColumn( columns, rule.column );
+		if ( column ) {
+			what =
+				describeRule( rule, columns ) ||
+				[ column.label, findOp( column, rule.op )?.label ]
+					.filter( Boolean )
+					.join( ' ' );
+		} else {
+			what = rule.column
+				? sprintf(
+						/* translators: %s: column key from the link */
+						__( 'A rule on “%s”', 'corinthian-pro' ),
+						rule.column
+				  )
+				: __( 'A rule', 'corinthian-pro' );
+		}
 	}
 	const reason = DROP_REASONS()[ item?.reason ] || '';
 	return [ what, reason ].filter( Boolean ).join( ': ' );
