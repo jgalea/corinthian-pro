@@ -3,15 +3,19 @@ import { __, _n, sprintf } from '@wordpress/i18n';
 import { createRoot, useState, useRef, useEffect } from '@wordpress/element';
 import {
 	Button,
-	CheckboxControl,
-	Dropdown,
-	Modal,
 	Notice,
 	SelectControl,
 	TextControl,
 } from '@wordpress/components';
 import { aiEnabled } from './ai';
 import { ValuePicker } from './value-picker';
+import {
+	SaveSegment,
+	SegmentToast,
+	SegmentsMenu,
+	holdDefault,
+	useSegments,
+} from './segments';
 
 const config = window.corinthianTable;
 const filterConfig = config?.filter;
@@ -211,6 +215,7 @@ function navigate( filter ) {
 	} else {
 		url.searchParams.delete( filterConfig.param );
 	}
+	holdDefault( url, ! filter );
 	window.location.assign( url.toString() );
 }
 
@@ -531,141 +536,17 @@ function DescribeFilter( { columns, onLoad } ) {
 	);
 }
 
-function SaveSegment( { draft, columns, canShare, onSaved } ) {
-	const [ name, setName ] = useState( '' );
-	const [ shared, setShared ] = useState( false );
-	const [ busy, setBusy ] = useState( false );
-	const [ error, setError ] = useState( '' );
-	const filter = cleanFilter( draft, columns );
-
-	const submit = ( event ) => {
-		event.preventDefault();
-		if ( ! name.trim() || ! filter.rules.length ) {
-			return;
-		}
-		setBusy( true );
-		setError( '' );
-		apiFetch( {
-			path: `/corinthian/v1/sets/${ config.set }/segments`,
-			method: 'POST',
-			data: { name: name.trim(), filter, shared: canShare && shared },
-		} )
-			.then( ( segment ) => {
-				setName( '' );
-				setShared( false );
-				onSaved( segment );
-			} )
-			.catch( ( e ) =>
-				setError(
-					e?.message ||
-						__(
-							'The segment could not be saved.',
-							'corinthian-pro'
-						)
-				)
-			)
-			.finally( () => setBusy( false ) );
-	};
-
-	return (
-		<form className="corinthian-filter__save" onSubmit={ submit }>
-			<TextControl
-				__nextHasNoMarginBottom
-				__next40pxDefaultSize
-				label={ __( 'Segment name', 'corinthian-pro' ) }
-				value={ name }
-				onChange={ setName }
-			/>
-			{ canShare && (
-				<CheckboxControl
-					__nextHasNoMarginBottom
-					label={ __( 'Share with everyone', 'corinthian-pro' ) }
-					checked={ shared }
-					onChange={ setShared }
-				/>
-			) }
-			<Button
-				variant="secondary"
-				type="submit"
-				isBusy={ busy }
-				accessibleWhenDisabled
-				disabled={ busy || ! name.trim() || ! filter.rules.length }
-			>
-				{ __( 'Save as segment', 'corinthian-pro' ) }
-			</Button>
-			{ error && (
-				<p className="corinthian-filter__error" role="alert">
-					{ error }
-				</p>
-			) }
-		</form>
-	);
-}
-
-function SegmentRow( { segment, onApply, onDelete, canDelete } ) {
-	return (
-		<li className="corinthian-filter__segment">
-			<Button
-				className="corinthian-filter__segment-apply"
-				onClick={ onApply }
-			>
-				{ segment.name }
-			</Button>
-			{ canDelete && (
-				<Button
-					icon="trash"
-					label={ sprintf(
-						/* translators: %s: segment name */ __(
-							'Delete segment %s',
-							'corinthian-pro'
-						),
-						segment.name
-					) }
-					onClick={ onDelete }
-				/>
-			) }
-		</li>
-	);
-}
-
-function SegmentGroup( { title, segments, canDelete, onApply, onDelete } ) {
-	if ( ! segments.length ) {
-		return null;
-	}
-	return (
-		<section className="corinthian-filter__group">
-			<h3>{ title }</h3>
-			<ul>
-				{ segments.map( ( s ) => (
-					<SegmentRow
-						key={ s.id }
-						segment={ s }
-						canDelete={ canDelete }
-						onApply={ () => onApply( s ) }
-						onDelete={ () => onDelete( s ) }
-					/>
-				) ) }
-			</ul>
-		</section>
-	);
-}
-
 function App() {
-	const { columns, current, canShare } = filterConfig;
-	const [ segments, setSegments ] = useState( arr( filterConfig.segments ) );
+	const { columns, current } = filterConfig;
+	const segments = useSegments();
 	const [ open, setOpen ] = useState( false );
 	const [ draft, setDraft ] = useState( () => toDraft( current, columns ) );
-	const [ pendingDelete, setPendingDelete ] = useState( null );
-	const [ deleting, setDeleting ] = useState( false );
-	const [ deleteError, setDeleteError ] = useState( '' );
 	const toggleRef = useRef();
 
 	const active = arr( current?.rules ).filter( ( r ) =>
 		findOp( findColumn( columns, r.column ), r.op )
 	);
 	const count = active.length;
-	const shared = segments.filter( ( s ) => s.shared );
-	const personal = segments.filter( ( s ) => ! s.shared );
 
 	useEffect( () => {
 		if ( open ) {
@@ -691,31 +572,6 @@ function App() {
 	const removeChip = ( index ) => {
 		const rules = active.filter( ( _, i ) => i !== index );
 		navigate( { match: current.match, rules } );
-	};
-
-	const confirmDelete = () => {
-		setDeleting( true );
-		setDeleteError( '' );
-		apiFetch( {
-			path: `/corinthian/v1/sets/${ config.set }/segments/${ pendingDelete.id }`,
-			method: 'DELETE',
-		} )
-			.then( () => {
-				setSegments( ( list ) =>
-					list.filter( ( s ) => s.id !== pendingDelete.id )
-				);
-				setPendingDelete( null );
-			} )
-			.catch( ( e ) =>
-				setDeleteError(
-					e?.message ||
-						__(
-							'The segment could not be deleted.',
-							'corinthian-pro'
-						)
-				)
-			)
-			.finally( () => setDeleting( false ) );
 	};
 
 	return (
@@ -748,55 +604,8 @@ function App() {
 						</span>
 					) }
 				</Button>
-				<Dropdown
-					popoverProps={ { placement: 'bottom-start' } }
-					renderToggle={ ( { isOpen, onToggle } ) => (
-						<Button
-							className="corinthian-filter__segments-toggle"
-							variant="tertiary"
-							aria-expanded={ isOpen }
-							aria-haspopup="true"
-							onClick={ onToggle }
-						>
-							{ __( 'Segments', 'corinthian-pro' ) }
-						</Button>
-					) }
-					renderContent={ ( { onClose } ) => (
-						<div className="corinthian-filter__segments">
-							{ ! segments.length && (
-								<p className="corinthian-filter__empty">
-									{ __(
-										'No saved segments.',
-										'corinthian-pro'
-									) }
-								</p>
-							) }
-							<SegmentGroup
-								title={ __(
-									'Shared segments',
-									'corinthian-pro'
-								) }
-								segments={ shared }
-								canDelete={ canShare }
-								onApply={ ( s ) => navigate( s.filter ) }
-								onDelete={ ( s ) => {
-									onClose();
-									setPendingDelete( s );
-								} }
-							/>
-							<SegmentGroup
-								title={ __( 'My segments', 'corinthian-pro' ) }
-								segments={ personal }
-								canDelete
-								onApply={ ( s ) => navigate( s.filter ) }
-								onDelete={ ( s ) => {
-									onClose();
-									setPendingDelete( s );
-								} }
-							/>
-						</div>
-					) }
-				/>
+				<SegmentsMenu store={ segments } />
+				<SegmentToast store={ segments } />
 				{ active.length > 0 && (
 					<ul
 						className="corinthian-filter__chips"
@@ -934,60 +743,10 @@ function App() {
 					</div>
 
 					<SaveSegment
-						draft={ draft }
-						columns={ columns }
-						canShare={ canShare }
-						onSaved={ ( segment ) =>
-							setSegments( ( list ) => [ ...list, segment ] )
-						}
+						store={ segments }
+						draft={ cleanFilter( draft, columns ) }
 					/>
 				</div>
-			) }
-
-			{ pendingDelete && (
-				<Modal
-					title={ __( 'Delete segment', 'corinthian-pro' ) }
-					size="small"
-					onRequestClose={ () =>
-						! deleting && setPendingDelete( null )
-					}
-				>
-					<p>
-						{ sprintf(
-							/* translators: %s: segment name */ __(
-								'Delete the segment "%s"?',
-								'corinthian-pro'
-							),
-							pendingDelete.name
-						) }
-					</p>
-					{ deleteError && (
-						<p className="corinthian-filter__error" role="alert">
-							{ deleteError }
-						</p>
-					) }
-					<div className="corinthian-filter__actions">
-						<span className="corinthian-filter__spacer" />
-						<Button
-							variant="tertiary"
-							onClick={ () => setPendingDelete( null ) }
-							disabled={ deleting }
-							accessibleWhenDisabled
-						>
-							{ __( 'Cancel', 'corinthian-pro' ) }
-						</Button>
-						<Button
-							variant="primary"
-							isDestructive
-							isBusy={ deleting }
-							onClick={ confirmDelete }
-							disabled={ deleting }
-							accessibleWhenDisabled
-						>
-							{ __( 'Delete', 'corinthian-pro' ) }
-						</Button>
-					</div>
-				</Modal>
 			) }
 		</div>
 	);

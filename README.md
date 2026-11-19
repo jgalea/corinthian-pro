@@ -46,6 +46,10 @@ Integration tests run inside a WordPress test environment that also loads the fr
 
 ### Unreleased
 
+- Segments keep the sort, search and status along with the rules, and can be renamed or updated from the segments menu.
+- A segment can be the default view: your own, or one an administrator sets for everyone.
+- The filter bar names the active segment and marks it as edited when the list no longer matches it.
+- Deleting a segment happens at once, with Undo.
 - Importing or exporting column sets leaves out network screens unless you can manage the network.
 - CSV export neutralises formula cells that start with any Unicode space.
 - Uninstall cleans up every site on large networks.

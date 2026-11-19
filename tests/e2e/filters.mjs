@@ -4,7 +4,7 @@ import { execSync } from 'node:child_process';
 const CLI = process.env.WP_CLI_CONTAINER || 'wp-env-cli';
 const SHOTS = process.env.SHOTS_DIR || 'test-results';
 
-const base = 'http://localhost:8930';
+const base = process.env.WP_BASE || 'http://localhost:8930';
 const shots = process.env.SHOTS || '';
 const wp = ( cmd ) => execSync( `docker exec ${ CLI } wp ${ cmd }`, { encoding: 'utf8', stdio: [ 'ignore', 'pipe', 'ignore' ] } ).trim();
 // Own fixture: three fresh posts carrying a status unique to this run, trashed on exit.
@@ -96,16 +96,17 @@ check( ( await rows() ) === 3, 'picked segment: 3 rows' );
 await Promise.all( [ p.waitForNavigation(), p.getByRole( 'button', { name: /^Remove filter Status/ } ).click() ] );
 check( ( await rows() ) === total, 'removing the chip clears the filter' );
 
-// Delete with the confirm modal.
-await p.getByRole( 'button', { name: 'Segments' } ).click();
-await p.getByRole( 'button', { name: `Delete segment ${ segmentName }` } ).click();
-const modal = p.getByRole( 'dialog' );
-check( await modal.isVisible(), 'delete asks in a Modal' );
+// Delete at once, with Undo in a toast instead of a confirm.
+await p.locator( '.corinthian-filter__segments-toggle' ).click();
+await p.getByRole( 'button', { name: `Actions for ${ segmentName }` } ).click();
 const deleted = p.waitForResponse( ( r ) => r.url().includes( '/segments/' ) && r.request().method() !== 'GET' );
-await modal.getByRole( 'button', { name: 'Delete', exact: true } ).click();
+await p.getByRole( 'menuitem', { name: 'Delete' } ).click();
 check( ( await deleted ).status() === 200, 'segment deleted (200)' );
-await p.getByRole( 'button', { name: 'Segments' } ).click();
+check( ( await p.getByRole( 'dialog' ).count() ) === 0, 'no confirm dialog' );
+check( await p.locator( '.corinthian-segments__toast' ).getByRole( 'button', { name: 'Undo' } ).isVisible(), 'toast offers Undo' );
+await p.locator( '.corinthian-filter__segments-toggle' ).click();
 check( ( await p.getByRole( 'button', { name: segmentName, exact: true } ).count() ) === 0, 'segment gone from the list' );
+await p.keyboard.press( 'Escape' );
 
 // Resizing still saves.
 await open();
