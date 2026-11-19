@@ -11,6 +11,7 @@ import {
 	TextControl,
 } from '@wordpress/components';
 import { aiEnabled } from './ai';
+import { ValuePicker } from './value-picker';
 
 const config = window.corinthianTable;
 const filterConfig = config?.filter;
@@ -246,32 +247,20 @@ function ValueInput( { rule, operator, onChange, label } ) {
 		);
 	}
 	if ( operator.input === 'select' ) {
-		const options = optionList( operator );
 		if ( isMulti( operator.op ) ) {
-			const chosen = arr( rule.value );
 			return (
-				<fieldset className="corinthian-filter__multi">
-					<legend className="screen-reader-text">{ label }</legend>
-					{ options.map( ( o ) => (
-						<CheckboxControl
-							key={ o.value }
-							__nextHasNoMarginBottom
-							label={ o.label }
-							checked={ chosen.includes( o.value ) }
-							onChange={ ( on ) =>
-								onChange(
-									on
-										? [ ...chosen, o.value ]
-										: chosen.filter(
-												( v ) => v !== o.value
-										  )
-								)
-							}
-						/>
-					) ) }
-				</fieldset>
+				<ValuePicker
+					key={ rule.column }
+					multiple
+					column={ rule.column }
+					operator={ operator }
+					label={ label }
+					value={ rule.value }
+					onChange={ onChange }
+				/>
 			);
 		}
+		const options = optionList( operator );
 		return (
 			<SelectControl
 				__nextHasNoMarginBottom
@@ -287,6 +276,18 @@ function ValueInput( { rule, operator, onChange, label } ) {
 					},
 					...options,
 				] }
+				onChange={ onChange }
+			/>
+		);
+	}
+	if ( operator.search && operator.input === 'text' ) {
+		return (
+			<ValuePicker
+				key={ rule.column }
+				column={ rule.column }
+				operator={ operator }
+				label={ label }
+				value={ rule.value }
 				onChange={ onChange }
 			/>
 		);
