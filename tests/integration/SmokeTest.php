@@ -27,7 +27,7 @@ class SmokeTest extends WP_UnitTestCase {
 	}
 
 	public function test_guard_bails_when_free_is_too_old(): void {
-		$this->assertSame( 'outdated', corinthian_pro_requirement_problem( true, '0.0.9' ) );
+		$this->assertSame( 'outdated', corinthian_pro_requirement_problem( true, '0.1.1' ) );
 	}
 
 	public function test_notice_renders_without_fatal(): void {
@@ -37,6 +37,6 @@ class SmokeTest extends WP_UnitTestCase {
 		do_action( 'admin_notices' );
 		$html = (string) ob_get_clean();
 		$this->assertStringContainsString( 'requires the free Corinthian Admin Column Manager plugin', $html );
-		$this->assertStringContainsString( 'needs Corinthian Admin Column Manager 0.1.0', $html );
+		$this->assertStringContainsString( 'needs Corinthian Admin Column Manager 0.2.0', $html );
 	}
 }

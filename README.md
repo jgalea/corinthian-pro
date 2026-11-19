@@ -44,8 +44,15 @@ Integration tests run inside a WordPress test environment that also loads the fr
 
 ## Changelog
 
-### Unreleased
+### 0.3.0
 
+- Filter values come from a searchable picker that lists the values in use: authors, terms with their parent names and custom field values.
+- Date filters cover on, before, after, between, today, this week, this month, and the last or next number of days, with a date picker.
+- Filter chips sit on their own row. Clicking a chip opens its rule, Clear all removes every rule, and the row shows "Any of:" when any rule may match.
+- WordPress's own filter row steps aside on screens with the Corinthian filter bar.
+- A filter link with rules that no longer apply says which rules were left out, Apply points at incomplete rules, and a list with no matches offers Clear filters.
+- The filter panel takes focus when it opens, Escape closes it, and screen readers hear the result count.
+- Corinthian Admin Column Manager 0.2.0 or newer is required.
 - Segments keep the sort, search and status along with the rules, and can be renamed or updated from the segments menu.
 - A segment can be the default view: your own, or one an administrator sets for everyone.
 - The filter bar names the active segment and marks it as edited when the list no longer matches it.
