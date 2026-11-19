@@ -1,3 +1,34 @@
+/* Holds the toolbar's place until the script has mounted it, so the table doesn't jump down. */
+body:not(.corinthian-toolbar-ready) table.wp-list-table {
+	margin-block-start: 56px;
+}
+
+body.corinthian-has-filters:not(.corinthian-toolbar-ready) table.wp-list-table {
+	margin-block-start: 96px;
+}
+
+@media (max-width: 480px) {
+
+	body:not(.corinthian-toolbar-ready) table.wp-list-table {
+		margin-block-start: 100px;
+	}
+
+	body.corinthian-has-filters:not(.corinthian-toolbar-ready) table.wp-list-table {
+		margin-block-start: 170px;
+	}
+}
+
+@media (max-width: 340px) {
+
+	body:not(.corinthian-toolbar-ready) table.wp-list-table {
+		margin-block-start: 144px;
+	}
+
+	body.corinthian-has-filters:not(.corinthian-toolbar-ready) table.wp-list-table {
+		margin-block-start: 214px;
+	}
+}
+
 /* Smart filter bar */
 .corinthian-filter {
 	margin-block: 8px 12px;
@@ -11,13 +42,19 @@
 	gap: 8px;
 }
 
+.corinthian-filter__toggle.components-button {
+	position: relative;
+}
+
 .corinthian-filter__badge {
+	position: absolute;
+	inset-block-start: -8px;
+	inset-inline-end: -8px;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	min-inline-size: 20px;
 	block-size: 20px;
-	margin-inline-start: 6px;
 	padding-inline: 6px;
 	border-radius: 10px;
 	background: var(--wp-admin-theme-color, #2271b1);
@@ -25,6 +62,19 @@
 	font-size: 12px;
 	font-weight: 600;
 	box-sizing: border-box;
+}
+
+.corinthian-filter__chiprow {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 12px;
+	min-inline-size: 0;
+}
+
+.corinthian-filter__match-label {
+	color: oklch(0.35 0 none);
+	font-weight: 600;
 }
 
 .corinthian-filter__chips {
@@ -43,7 +93,7 @@
 	gap: 2px;
 	max-inline-size: 100%;
 	margin: 0;
-	padding-inline: 10px 2px;
+	padding-inline: 2px;
 	border: 1px solid var(--wp-admin-theme-color, #2271b1);
 	border-radius: 16px;
 	background: #fff;
@@ -51,8 +101,25 @@
 	box-sizing: border-box;
 }
 
-.corinthian-filter__chip span {
+.corinthian-filter__chip .corinthian-filter__chip-edit.components-button {
+	block-size: auto;
+	min-block-size: 28px;
+	padding-inline: 8px;
+	border-radius: 14px;
+	text-align: start;
+	white-space: normal;
 	overflow-wrap: anywhere;
+}
+
+.corinthian-filter__chip-edit.components-button:active {
+	background: color-mix(in oklch, var(--wp-admin-theme-color, #2271b1) 16%, #fff);
+}
+
+@media (hover: hover) and (pointer: fine) {
+
+	.corinthian-filter__chip-edit.components-button:hover {
+		background: color-mix(in oklch, var(--wp-admin-theme-color, #2271b1) 8%, #fff);
+	}
 }
 
 .corinthian-filter__panel {
@@ -111,6 +178,11 @@
 	align-items: flex-start;
 	gap: 8px;
 	margin: 0;
+}
+
+.corinthian-filter__rule:focus-within {
+	background: color-mix(in oklch, var(--wp-admin-theme-color, #2271b1) 6%, #fff);
+	box-shadow: -4px 0 0 color-mix(in oklch, var(--wp-admin-theme-color, #2271b1) 6%, #fff), -6px 0 0 var(--wp-admin-theme-color, #2271b1);
 }
 
 .corinthian-filter__rule > .components-base-control,
@@ -637,8 +709,22 @@
 	margin-block-end: 12px;
 }
 
-.corinthian-toolbar .corinthian-filter {
-	margin: 0;
+.corinthian-toolbar #corinthian-filter-root,
+.corinthian-toolbar .corinthian-filter,
+.corinthian-toolbar .corinthian-filter__bar {
+	display: contents;
+}
+
+/* The chips and panel take their own rows so the buttons in the first row stay put. */
+.corinthian-toolbar .corinthian-filter__chiprow {
+	order: 1;
+	flex: 1 0 100%;
+}
+
+.corinthian-toolbar .corinthian-filter__panel {
+	order: 2;
+	flex: 1 0 100%;
+	margin-block-start: 0;
 }
 
 /* Inline edit */

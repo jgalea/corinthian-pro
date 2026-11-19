@@ -48,12 +48,19 @@ final class FilterPayload {
 		if ( ! is_array( $data ) ) {
 			return $data;
 		}
+		$current = FilterSet::from_request()->to_array();
+		if ( ! empty( $current['rules'] ) ) {
+			add_filter(
+				'admin_body_class',
+				static fn( $classes ) => is_string( $classes ) ? $classes . ' corinthian-has-filters' : $classes
+			);
+		}
 		$data['hasFormatting'] = (bool) \CorinthianPro\Rest\FormattingController::rules( $set );
 		$columns               = $this->filterable_columns( $screen, $set );
 		$this->bar             = (bool) $columns;
 		$data['filter']        = array(
 			'param'         => FilterSet::QUERY_VAR,
-			'current'       => FilterSet::from_request()->to_array(),
+			'current'       => $current,
 			'view'          => ViewState::from_request( $screen ),
 			'statusParam'   => ViewState::status_param( $screen ),
 			'segmentParam'  => ViewState::SEGMENT_VAR,
