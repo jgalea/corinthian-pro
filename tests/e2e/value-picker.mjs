@@ -124,9 +124,9 @@ check( await panel().locator( '.corinthian-picker__token', { hasText: 'Zebra cro
 await openPanel();
 await pickColumn( 'Author', 'is any of' );
 await combo().fill( 'Zoe' );
-await listbox().getByRole( 'option', { name: 'Zoe Zammit' } ).click();
+await listbox().getByRole( 'option', { name: 'Zoe Zimmerman' } ).click();
 await apply();
-check( ( await rows() ) === 1, `Author is any of Zoe Zammit: 1 row (${ await rows() })` );
+check( ( await rows() ) === 1, `Author is any of Zoe Zimmerman: 1 row (${ await rows() })` );
 
 // Labels for values outside page 1 that arrive without a payload label (e.g. from the AI builder).
 const looked = await p.evaluate( ( [ set, zebra ] ) => wp.apiFetch( { path: `/corinthian/v1/sets/${ set }/filter-values?column=tags&include[]=${ zebra }` } ), [ seed.set, seed.zebra ] );

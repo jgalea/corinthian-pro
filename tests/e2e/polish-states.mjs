@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 // site and SHOTS_DIR to keep screenshots. Seeds posts, an Events type and a column set per screen.
 const CLI = process.env.WP_CLI_CONTAINER || 'wp-env-cli';
 const SHOTS = process.env.SHOTS_DIR || 'test-results';
-const base = process.env.WP_BASE_URL || 'http://localhost:9001';
+const base = process.env.WP_BASE_URL || 'http://localhost:8930';
 const here = dirname( fileURLToPath( import.meta.url ) );
 mkdirSync( SHOTS, { recursive: true } );
 

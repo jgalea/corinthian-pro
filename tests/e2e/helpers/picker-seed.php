@@ -3,8 +3,8 @@
 // values, and a column set on post:post that the admin sees first. Safe to run again. Prints JSON.
 global $wpdb;
 
-$first = array( 'Maria', 'Joseph', 'Anna', 'Paul', 'Claire', 'Mark', 'Rita', 'Karl', 'Nadia', 'Simon', 'Elena', 'Luke', 'Sara', 'Daniel', 'Ivy', 'Owen', 'Greta', 'Hugo', 'Lina', 'Theo' );
-$last  = array( 'Borg', 'Camilleri', 'Debono', 'Ellul', 'Farrugia', 'Grech', 'Mifsud', 'Pace', 'Vella', 'Zammit', 'Galea', 'Abela', 'Azzopardi', 'Bonello', 'Cassar', 'Spiteri', 'Attard', 'Micallef', 'Sammut', 'Fenech', 'Scicluna', 'Tabone', 'Xuereb', 'Agius', 'Buttigieg', 'Caruana', 'Gauci', 'Muscat', 'Portelli', 'Zahra', 'Bugeja' );
+$first = array( 'Maria', 'Jonas', 'Anna', 'Paul', 'Claire', 'Miles', 'Rita', 'Karl', 'Nadia', 'Simon', 'Elena', 'Luke', 'Sara', 'Daniel', 'Ivy', 'Owen', 'Greta', 'Hugo', 'Lina', 'Theo' );
+$last  = array( 'Smith', 'Johnson', 'Brown', 'Taylor', 'Wilson', 'Davies', 'Evans', 'Thomas', 'Roberts', 'Walker', 'Wright', 'Hughes', 'Green', 'Hall', 'Wood', 'Harris', 'Clarke', 'Jackson', 'Turner', 'Hill', 'Moore', 'Cooper', 'Ward', 'King', 'Baker', 'Lee', 'Martin', 'Allen', 'Young', 'Scott', 'Mitchell' );
 
 $have = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->users} WHERE user_login LIKE 'picker-user-%'" );
 for ( $i = $have + 1; $i <= 620; $i++ ) {
@@ -29,7 +29,7 @@ $zoe = $zoe ? $zoe->ID : wp_insert_user(
 		'user_login'   => 'picker-zoe',
 		'user_pass'    => wp_generate_password(),
 		'user_email'   => 'picker-zoe@example.com',
-		'display_name' => 'Zoe Zammit',
+		'display_name' => 'Zoe Zimmerman',
 		'role'         => 'author',
 	)
 );
@@ -60,7 +60,7 @@ $post_by_title = static function ( string $title, array $extra = array() ): int 
 };
 $tagged = $post_by_title( 'Picker: tagged with Zebra crossings' );
 wp_set_post_terms( $tagged, array( $zebra ), 'post_tag' );
-$authored = $post_by_title( 'Picker: written by Zoe Zammit', array( 'post_author' => $zoe ) );
+$authored = $post_by_title( 'Picker: written by Zoe Zimmerman', array( 'post_author' => $zoe ) );
 
 $priorities = array( 'low', 'medium', 'high', 'urgent' );
 for ( $i = 1; $i <= 40; $i++ ) {
